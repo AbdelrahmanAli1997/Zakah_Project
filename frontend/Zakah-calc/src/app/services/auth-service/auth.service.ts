@@ -1,32 +1,102 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { ILoginResponse, IuserLogin, IuserRegisteration } from '../../models/IuserRegistration';
-import { IForgotPassword, IForgotPasswordResponse } from '../../models/IuserRegistration';
+import {Injectable} from '@angular/core';
+import {HttpClient} from '@angular/common/http';
+import {Observable, tap} from 'rxjs';
+import {
+  AuthenticationResponse,
+  ForgetPasswordResponse,
+  ResetPasswordResponse,
+  VerifyOtpResponse
+} from '../../models/response/IAuthResponse';
+import {AuthStorageService} from '../storage-service/StorageService';
+import {
+  AuthenticationRequest,
+  ForgetPasswordRequest,
+  RefreshRequest,
+  ResetPasswordRequest,
+  VerifyAccountRequest,
+  VerifyOtpRequest
+} from '../../models/request/IAuthRequest';
+import {IuserRegisteration} from '../../models/IuserRegistration';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://your-api-domain.com/api/auth';
 
-  constructor(private http: HttpClient) { }
-  login(credentials: IuserLogin): Observable<ILoginResponse> {
-    return this.http.post<ILoginResponse>(`${this.apiUrl}/login`, credentials);
+  private readonly BASE_URL = '/api/auth';
+
+  constructor(private http: HttpClient) {}
+
+  /* ================= AUTH ================= */
+
+  login(request: AuthenticationRequest): Observable<AuthenticationResponse> {
+    return this.http
+      .post<AuthenticationResponse>(`${this.BASE_URL}/login`, request)
+      .pipe(
+        tap(res => AuthStorageService.saveTokens(res))
+      );
   }
 
-  register(userData: IuserRegisteration): Observable<any> {
-    // نرسل البيانات للسيرفر ونستقبل النتيجة
-    return this.http.post<any>(`${this.apiUrl}/register`, userData);
+  register(request: IuserRegisteration): Observable<void> {
+    return this.http.post<void>(`${this.BASE_URL}/register`, request);
   }
 
-  verifyOtp(email: string, otp: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/verify-otp`, { email, otp });
+  verifyAccount(
+    request: VerifyAccountRequest
+  ): Observable<AuthenticationResponse> {
+    return this.http
+      .post<AuthenticationResponse>(`${this.BASE_URL}/verify-acount`, request)
+      .pipe(
+        tap(res => AuthStorageService.saveTokens(res))
+      );
   }
 
-  // داخل الـ Class
-forgotPassword(data: IForgotPassword): Observable<IForgotPasswordResponse> {
-  return this.http.post<IForgotPasswordResponse>(`${this.apiUrl}/forgot-password`, data);
-}
+  refreshToken(): Observable<AuthenticationResponse> {
+    const refreshToken = AuthStorageService.getRefreshToken();
+
+    return this.http
+      .post<AuthenticationResponse>(
+        `${this.BASE_URL}/refresh-token`,
+        { refreshToken } as RefreshRequest
+      )
+      .pipe(
+        tap(res => AuthStorageService.saveTokens(res))
+      );
+  }
+
+  /* ================= PASSWORD ================= */
+
+  forgetPassword(
+    request: ForgetPasswordRequest
+  ): Observable<ForgetPasswordResponse> {
+    return this.http.post<ForgetPasswordResponse>(
+      `${this.BASE_URL}/password/forget-password`,
+      request
+    );
+  }
+
+  verifyOtp(
+    request: VerifyOtpRequest
+  ): Observable<VerifyOtpResponse> {
+    return this.http.post<VerifyOtpResponse>(
+      `${this.BASE_URL}/password/verify-otp`,
+      request
+    );
+  }
+
+  resetPassword(
+    request: ResetPasswordRequest
+  ): Observable<ResetPasswordResponse> {
+    return this.http.post<ResetPasswordResponse>(
+      `${this.BASE_URL}/password/reset-password`,
+      request
+    );
+  }
+
+  /* ================= LOGOUT ================= */
+
+  logout(): void {
+    AuthStorageService.clear();
+  }
 }
