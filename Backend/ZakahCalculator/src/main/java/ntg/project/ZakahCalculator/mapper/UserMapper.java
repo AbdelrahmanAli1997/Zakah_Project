@@ -49,7 +49,7 @@ public class UserMapper {
         response.setFullName(user.getName());
         response.setEmail(user.getEmail());
         if (user.getRoles() != null && !user.getRoles().isEmpty()) {
-            response.setUserType(user.getRoles().get(0).getName());
+            response.setUserType(user.getRoles().get(0).getType());
         }
         return response;
     }

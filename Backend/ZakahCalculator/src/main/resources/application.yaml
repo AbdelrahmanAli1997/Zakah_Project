@@ -13,13 +13,18 @@ spring:
     host: "smtp.gmail.com"
     port: "587"
     username: "madel25810@gmail.com"
-    password: "hrrsrbsuwqicxqel"
+    password: "qchowugunjqqaqle"
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+  flyway:
+    enabled: true
+    locations:
+      - classpath:db/migration
+    baseline-on-migrate: true
 
   datasource:
     url: jdbc:postgresql://ep-wandering-glitter-addacktd.c-2.us-east-1.aws.neon.tech/zakah_calc_db?user=neondb_owner&password=npg_ZJLjg4kaCcE7&sslmode=require
@@ -55,3 +60,5 @@ app:
       refresh-token-expiration: 604800000 # 7 days
 frontend:
   url: "http://localhost:4200"
+mail:
+  from: "madel25810@gmail.com"

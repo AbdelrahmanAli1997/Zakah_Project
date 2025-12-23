@@ -17,11 +17,11 @@ public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-//    @SequenceGenerator(name = "role_seq_id",sequenceName = "role_seq_id",allocationSize = 1)
+    @SequenceGenerator(name = "role_seq_id",sequenceName = "role_seq_id",allocationSize = 1)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private UserType name; // INDIVIDUAL, COMPANY, ADMIN
+    private UserType type; // INDIVIDUAL, COMPANY, ADMIN
 
     @ManyToMany(mappedBy = "roles")
     private List<User> users;

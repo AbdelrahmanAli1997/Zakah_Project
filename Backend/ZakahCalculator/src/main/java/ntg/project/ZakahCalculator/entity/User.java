@@ -50,7 +50,7 @@ public class User extends BaseEntity implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
         for (Role role : roles) {
-            authorities.add(new SimpleGrantedAuthority(role.getName().name()));
+            authorities.add(new SimpleGrantedAuthority(role.getType().name()));
         }
         return authorities;
     }
