@@ -19,10 +19,12 @@ export class Navbar {
 
   isProfileMenuOpen = signal(false);
 
-
-  toggleProfileMenu() {
-    this.isProfileMenuOpen.update(v => !v);
+  // Inside your component class
+  toggleProfileMenu(event: Event) {
+    event.stopPropagation(); // Prevents the click from hitting the 'document' listener
+    this.isProfileMenuOpen.update(val => !val);
   }
+
   closeMenu() {
     this.isProfileMenuOpen.set(false);
   }

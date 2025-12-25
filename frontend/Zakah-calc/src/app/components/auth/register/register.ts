@@ -1,4 +1,3 @@
-// register.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -7,7 +6,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth-service/auth.service';
 import { RegistrationRequest } from '../../../models/request/IAuthRequest';
 import { UserType } from '../../../models/enums/UserType';
-import {environment} from '../../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 import * as CryptoJS from 'crypto-js';
 
 @Component({
@@ -18,9 +17,9 @@ import * as CryptoJS from 'crypto-js';
 })
 export class Register implements OnInit {
 
-
   secretKey: string = environment.secretKey;
   registerForm!: FormGroup;
+  isLoading = false; // Loading state
 
   constructor(
     private fb: FormBuilder,
@@ -36,7 +35,6 @@ export class Register implements OnInit {
         password: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', Validators.required],
         persona: ['individual', Validators.required],
-        // termsAccepted: [false, Validators.requiredTrue]
       },
       { validators: this.passwordMatchValidator }
     );
@@ -57,10 +55,12 @@ export class Register implements OnInit {
   }
 
   onSubmit() {
-    if (this.registerForm.invalid) {
+    if (this.registerForm.invalid || this.isLoading) {
       this.registerForm.markAllAsTouched();
       return;
     }
+
+    this.isLoading = true;
 
     const nameParts = this.registerForm.value.name.trim().split(' ');
 
@@ -78,13 +78,21 @@ export class Register implements OnInit {
 
     this.authService.register(request).subscribe({
       next: () => {
-        const encryptedEmail = CryptoJS.AES.encrypt(request.email, this.secretKey).toString();
+        const encryptedEmail = CryptoJS.AES.encrypt(
+          request.email,
+          this.secretKey
+        ).toString();
+
         this.router.navigate(['/verify-otp'], {
           queryParams: { email: encryptedEmail }
         });
       },
       error: () => {
         alert('فشل إنشاء الحساب');
+        this.isLoading = false;
+      },
+      complete: () => {
+        this.isLoading = false;
       }
     });
   }
