@@ -29,9 +29,10 @@ export interface RegistrationRequest {
 }
 
 export interface ResetPasswordRequest {
-  resetToken: string;
+  email: string;
+  otpCode: string;
   newPassword: string;
-  confirmNewPassword: string;
+  confirmPassword: string;
 }
 
 export interface VerifyAccountRequest {
@@ -39,6 +40,7 @@ export interface VerifyAccountRequest {
 }
 
 export interface VerifyOtpRequest {
+  email:string;
   otp: string;
 }
 

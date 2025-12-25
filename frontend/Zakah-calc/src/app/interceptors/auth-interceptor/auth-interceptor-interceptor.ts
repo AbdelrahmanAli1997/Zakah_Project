@@ -2,14 +2,15 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { AuthStorageService } from '../../services/storage-service/StorageService';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const PUBLIC_ENDPOINTS = [
-    '/auth/login',
-    '/auth/register',
-    '/auth/refresh-token',
-    '/auth/verify-account',
-    '/auth/forgot-password',
-    '/auth/reset-password'
-  ];
+ const PUBLIC_ENDPOINTS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/refresh-token',
+  '/auth/verify-account',
+  '/auth/password/forget-password',
+  '/auth/password/reset-password'
+];
+
 
   const url = req.url;
   let path = url;

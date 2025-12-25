@@ -53,56 +53,33 @@
     </ul>
 
     <!-- Mobile Hamburger -->
-    <a (click)="toggleProfileMenu()" class="md:hidden p-2 rounded-lg hover:bg-slate-200">
-        <svg class="h-6 w-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+  <div class="relative hidden md:block" 
+     #profileMenu 
+     appClickOutside 
+     (clickOutside)="isProfileMenuOpen.set(false)">
+     
+    <a (click)="toggleProfileMenu($event)"
+       class="flex items-center gap-3 border rounded-full p-1 hover:bg-slate-100 transition-colors hover:cursor-pointer hover:border-emerald-400">
+        <img class="h-9 w-9 rounded-full" src="https://picsum.photos/100/100">
+        <div class="text-start">
+            <p class="text-sm font-semibold text-slate-800">{{name}}</p>
+            <p class="text-xs text-slate-500">{{type}}</p>
+        </div>
+        <svg class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
     </a>
 
-    <!-- Profile (Desktop Only) -->
-    <div class="relative hidden md:block">
-        <a (click)="toggleProfileMenu()"
-            class="flex items-center gap-3 border rounded-full p-1 hover:bg-slate-100 transition-colors hover:cursor-pointer hover:border-emerald-400">
-            <img class="h-9 w-9 rounded-full" src="https://picsum.photos/100/100">
-            <div class="text-start">
-                <p class="text-sm font-semibold text-slate-800">{{name}}</p>
-                <p class="text-xs text-slate-500">{{type}}</p>
-            </div>
-            <svg class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-        </a>
-
-        <!-- Desktop Dropdown Menu -->
-        @if (isProfileMenuOpen()) {
-        <div class="absolute left-0 mt-2 w-40 p-2  rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50">
-            <div class="p-1">
-                <a routerLink="/profile" (click)="closeMenu()"
-                    class="dropdown-item rounded-full hover:bg-slate-200 p-1">ملفك الشخصي</a>
-            </div>
-            <div class="p-1">
-                <a (click)="logout()" routerLink=""
-                    class="dropdown-item text-red-600 hover:bg-red-50 p-1 rounded-full">تسجيل الخروج</a>
-            </div>
+    @if (isProfileMenuOpen()) {
+    <div class="absolute left-0 mt-2 w-40 p-2 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+        <div class="p-1">
+            <a routerLink="/profile" (click)="closeMenu()"
+               class="dropdown-item rounded-full hover:bg-slate-200 p-1">ملفك الشخصي</a>
         </div>
-        }
+        <div class="p-1">
+            <a (click)="logout()" routerLink=""
+               class="dropdown-item text-red-600 hover:bg-red-50 p-1 rounded-full">تسجيل الخروج</a>
+        </div>
     </div>
-</nav>
-
-<!-- Mobile Menu -->
-@if (isProfileMenuOpen()) {
-<div class="fixed inset-x-0 top-16 bg-white border-t shadow-md md:hidden z-40">
-    <div class="flex flex-col p-4 space-y-2">
-
-        <a routerLink="/" (click)="closeMenu()" class="mobile-link">مقدمة</a>
-        <a routerLink="/dashboard" (click)="closeMenu()" class="mobile-link">لوحة التحكم</a>
-        <a routerLink="/wizard" (click)="closeMenu()" class="mobile-link">حساب جديد</a>
-        <a routerLink="/guide" (click)="closeMenu()" class="mobile-link">دليل الزكاة</a>
-
-        <hr>
-
-        <a routerLink="/profile" (click)="closeMenu()" class="mobile-link">ملفك الشخصي</a>
-        <a routerLink="/" (click)="logout()" class="mobile-link text-red-600">تسجيل الخروج</a>
-    </div>
+    }
 </div>
-}
