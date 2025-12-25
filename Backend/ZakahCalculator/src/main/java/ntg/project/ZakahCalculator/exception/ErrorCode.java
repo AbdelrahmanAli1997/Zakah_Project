@@ -26,7 +26,7 @@ public enum ErrorCode {
     UN_EXPECTED_FOLLOW("UN_EXPECTED_FOLLOW", "Can't Complete this follow", BAD_REQUEST),
     POST_NOT_FOUND("POST_NOT_FOUND", "post not found", NOT_FOUND),
     UNAUTHORIZED_ACTION("UNAUTHORIZED_ACTION", "unauthorized action", FORBIDDEN),
-    COMMENT_NOT_FOUND("COMMENT_NOT_FOUND", "Comment Not Found", NOT_FOUND),
+    RECORD_NOT_FOUND("RECORD_NOT_FOUND", "Comment Not Found", NOT_FOUND),
     NOTIFICATION_NOT_FOUND("NOTIFICATION_NOT_FOUND", "Notification Not Found", NOT_FOUND),
     LIKE_CONFLICT("LIKE_CONFLICT", "like conflict", CONFLICT),
     JWT_NOT_VALID("JWT_NOT_VALID", "access token not valid", UNAUTHORIZED),

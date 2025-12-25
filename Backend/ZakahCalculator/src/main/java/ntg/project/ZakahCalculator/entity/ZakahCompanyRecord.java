@@ -16,8 +16,7 @@ import java.time.LocalDate;
 @Setter
 public class ZakahCompanyRecord extends ZakahRecord {
 
-
-    //Assets
+    // Assets
     @Column(name = "cash_equivalents", precision = 15, scale = 2)
     private BigDecimal cashEquivalents;
 
@@ -30,93 +29,21 @@ public class ZakahCompanyRecord extends ZakahRecord {
     @Column(precision = 15, scale = 2)
     private BigDecimal investment;
 
-    //Liabilities
+    // Liabilities
     @Column(name = "accounts_payable", precision = 15, scale = 2)
     private BigDecimal accountsPayable;
 
     @Column(name = "short_term_liability", precision = 15, scale = 2)
     private BigDecimal shortTermLiability;
 
-    @Column(name="accrued_expenses",precision = 15, scale = 2)
+    @Column(name = "accrued_expenses", precision = 15, scale = 2)
     private BigDecimal accruedExpenses;
 
-    //yearly_portion_of_long_term_liabilities
-    @Column(name="yearly_long_term_liabilities",precision = 15, scale = 2)
-    private BigDecimal yearly_long_term_liabilities;
+    // yearly_portion_of_long_term_liabilities
+    @Column(name = "yearly_long_term_liabilities", precision = 15, scale = 2)
+    private BigDecimal yearlyLongTermLiabilities;
 
-    //Balance sheet Data
-    @Column(name="balance_sheet_date")
-    private LocalDate balance_sheet_date;
-
-    public BigDecimal getCashEquivalents() {
-        return cashEquivalents;
-    }
-
-    public void setCashEquivalents(BigDecimal cashEquivalents) {
-        this.cashEquivalents = cashEquivalents;
-    }
-
-    public BigDecimal getAccountsReceivable() {
-        return accountsReceivable;
-    }
-
-    public void setAccountsReceivable(BigDecimal accountsReceivable) {
-        this.accountsReceivable = accountsReceivable;
-    }
-
-    public BigDecimal getInventory() {
-        return inventory;
-    }
-
-    public void setInventory(BigDecimal inventory) {
-        this.inventory = inventory;
-    }
-
-    public BigDecimal getInvestment() {
-        return investment;
-    }
-
-    public void setInvestment(BigDecimal investment) {
-        this.investment = investment;
-    }
-
-    public BigDecimal getAccountsPayable() {
-        return accountsPayable;
-    }
-
-    public void setAccountsPayable(BigDecimal accountsPayable) {
-        this.accountsPayable = accountsPayable;
-    }
-
-    public BigDecimal getShortTermLiability() {
-        return shortTermLiability;
-    }
-
-    public void setShortTermLiability(BigDecimal shortTermLiability) {
-        this.shortTermLiability = shortTermLiability;
-    }
-
-    public BigDecimal getAccruedExpenses() {
-        return accruedExpenses;
-    }
-
-    public void setAccruedExpenses(BigDecimal accruedExpenses) {
-        this.accruedExpenses = accruedExpenses;
-    }
-
-    public BigDecimal getYearly_long_term_liabilities() {
-        return yearly_long_term_liabilities;
-    }
-
-    public void setYearly_long_term_liabilities(BigDecimal yearly_long_term_liabilities) {
-        this.yearly_long_term_liabilities = yearly_long_term_liabilities;
-    }
-
-    public LocalDate getBalance_sheet_date() {
-        return balance_sheet_date;
-    }
-
-    public void setBalance_sheet_date(LocalDate balance_sheet_date) {
-        this.balance_sheet_date = balance_sheet_date;
-    }
+    // Balance sheet Data
+    @Column(name = "balance_sheet_date")
+    private LocalDate balanceSheetDate;
 }

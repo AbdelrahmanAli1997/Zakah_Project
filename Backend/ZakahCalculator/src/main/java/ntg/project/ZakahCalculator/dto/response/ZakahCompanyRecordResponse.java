@@ -1,16 +1,21 @@
 package ntg.project.ZakahCalculator.dto.response;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@AllArgsConstructor
-@Getter
 @Setter
+@Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class ZakahCompanyRecordResponse {
+
     private Long id;
 
     // Assets
@@ -25,30 +30,24 @@ public class ZakahCompanyRecordResponse {
     private BigDecimal accruedExpenses;
     private BigDecimal yearlyLongTermLiabilities;
 
-    // Other Info
+    // Zakah Info
     private BigDecimal goldPrice;
-    private BigDecimal totalZakah;
     private Long userId;
+
+    // Zakah Comparison with Previous Record
+    private BigDecimal previousZakahAmount;
+    private BigDecimal zakahDifference;
+
+    // Hawl Status
+    private boolean hawlCompleted;
+    private long daysSinceLastCalculation;
+    private String message;
+
+    // Current Record - Main Display
+    private BigDecimal totalAssets;
+    private BigDecimal totalLiabilities;
+    private BigDecimal currentZakahPool; // Net wealth (Assets - Liabilities)
+    private BigDecimal zakahAmount;
+    private LocalDate calculationDate;
     private LocalDate balanceSheetDate;
-
-    //Get Total Assets
-    public BigDecimal getTotalAssets() {
-        return cashEquivalents
-                .add(accountsReceivable)
-                .add(inventory)
-                .add(investment);
-    }
-
-    //GetTotalLiability
-    public BigDecimal getTotalLiabilities() {
-        return accountsPayable
-                .add(shortTermLiability)
-                .add(accruedExpenses)
-                .add(yearlyLongTermLiabilities);
-    }
-
-    //Get NetZakahBase
-    public BigDecimal getNetZakahBase() {
-        return getTotalAssets().subtract(getTotalLiabilities());
-    }
 }

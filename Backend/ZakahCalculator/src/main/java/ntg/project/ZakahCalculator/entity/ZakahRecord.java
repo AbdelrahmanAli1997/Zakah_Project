@@ -27,7 +27,7 @@ public class ZakahRecord extends BaseEntity {
         private User user;
 
         @Column(nullable = false, precision = 15, scale = 2)
-        private BigDecimal totalZakah;
+        private BigDecimal zakahAmount;
 
         @Column(name = "gold_price", nullable = false, precision = 10, scale = 2)
         private BigDecimal goldPrice;

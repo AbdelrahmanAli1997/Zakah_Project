@@ -15,7 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ZakahCompanyRecordMapper {
 
-    public ZakahCompanyRecord ToEntity(ZakahCompanyRecordRequest request, User user) {
+    public ZakahCompanyRecord toEntity(ZakahCompanyRecordRequest request, User user) {
         if (request == null) {return null;}
 
         ZakahCompanyRecord record = new ZakahCompanyRecord();
@@ -28,12 +28,12 @@ public class ZakahCompanyRecordMapper {
         record.setAccountsPayable(request.getAccountsPayable() != null ? request.getAccountsPayable() : BigDecimal.ZERO);
         record.setShortTermLiability(request.getShortTermLiability() != null ? request.getShortTermLiability() : BigDecimal.ZERO);
         record.setAccruedExpenses(request.getAccruedExpenses() != null ? request.getAccruedExpenses() : BigDecimal.ZERO);
-        record.setYearly_long_term_liabilities(request.getYearly_long_term_liabilities() != null ? request.getYearly_long_term_liabilities() : BigDecimal.ZERO);
+        record.setYearlyLongTermLiabilities(request.getYearly_long_term_liabilities() != null ? request.getYearly_long_term_liabilities() : BigDecimal.ZERO);
         record.setGoldPrice(request.getGoldPrice() != null ? request.getGoldPrice() : BigDecimal.ZERO);
         record.setUser(user);
 
         if (request.getBalance_sheet_date() != null) {
-            record.setBalance_sheet_date(request.getBalance_sheet_date());
+            record.setBalanceSheetDate(request.getBalance_sheet_date());
         }
 
         return record;
@@ -53,10 +53,10 @@ public class ZakahCompanyRecordMapper {
                 .accountsPayable(entity.getAccountsPayable())
                 .shortTermLiability(entity.getShortTermLiability())
                 .accruedExpenses(entity.getAccruedExpenses())
-                .yearly_long_term_liabilities(entity.getYearly_long_term_liabilities())
+                .yearly_long_term_liabilities(entity.getYearlyLongTermLiabilities())
                 .goldPrice(entity.getGoldPrice())
                 .userId(entity.getUser().getId())
-                .balance_sheet_date(entity.getBalance_sheet_date())
+                .balance_sheet_date(entity.getBalanceSheetDate())
                 .build();
     }
 
