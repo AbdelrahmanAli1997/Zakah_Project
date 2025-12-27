@@ -1,4 +1,3 @@
-// src/app/models/zakah.model.ts
 export type Persona = 'individual' | 'company';
 
 export interface ZakahFormData {
@@ -6,8 +5,8 @@ export interface ZakahFormData {
   balanceSheetDate: string;
   persona: Persona;
 
-  // Assets
-  cash: number;
+  // Assets (النقد يشمل النقد + الذهب)
+  cash: number;              // النقد + قيمة الذهب
   stocks: number;
   inventory: number;
   receivables: number;
@@ -18,10 +17,9 @@ export interface ZakahFormData {
   shortTermLoans: number;
   longTermDebt: number;
 
-  // Gold (for individuals)
-  goldWeightInGrams: number;
-  goldPricePerGram: number;
-  goldValue: number;
+  // Gold info (فقط للمعلومات)
+  goldWeightInGrams: number;  // وزن الذهب بالجرام (من Excel)
+  goldPricePerGram: number;   // سعر الجرام اليومي (يدخله المستخدم فقط للمعلومة)
 
   // Calculated values
   totalAssets: number;

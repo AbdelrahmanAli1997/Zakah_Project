@@ -20,8 +20,7 @@ export class ZakahService {
     shortTermLoans: 0,
     longTermDebt: 0,
     goldWeightInGrams: 0,
-    goldPricePerGram: 75.21,
-    goldValue: 0,
+    goldPricePerGram: 0,
     totalAssets: 0,
     totalLiabilities: 0,
     netAssets: 0,
@@ -84,12 +83,9 @@ export class ZakahService {
 
       const data = this.formDataSignal();
 
-      // Calculate gold value
-      const goldValue = (data.goldWeightInGrams || 0) * (data.goldPricePerGram || 0);
-
       // Calculate totals
       const totalAssets = (data.cash || 0) + (data.stocks || 0) + (data.inventory || 0) +
-                         (data.receivables || 0) + (data.persona === 'individual' ? goldValue : 0);
+                         (data.receivables || 0);
 
       const totalLiabilities = (data.accountPayable || 0) + (data.expenses || 0) +
                               (data.shortTermLoans || 0) + (data.longTermDebt || 0);
@@ -98,7 +94,6 @@ export class ZakahService {
       const zakahAmount = Math.max(0, netAssets) * 0.025; // 2.5%
 
       this.updateFormData({
-        goldValue,
         totalAssets,
         totalLiabilities,
         netAssets,
@@ -124,8 +119,11 @@ export class ZakahService {
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
 
-          // تحويل الورقة إلى مصفوفة مع تحديد نوع البيانات
-          const jsonData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
+          // تحويل الورقة إلى مصفوفة مع تحديد النوع
+          const jsonData: any[][] = XLSX.utils.sheet_to_json(worksheet, {
+            header: 1,
+            defval: null
+          });
 
           // تحليل البيانات بناءً على هيكل Excel الذي أرسلته
           const parsedData = this.parseExcelData(jsonData);
@@ -158,7 +156,7 @@ export class ZakahService {
     try {
       // البحث عن العناوين والبيانات
       if (jsonData.length >= 2) {
-        const headers = jsonData[0]; // الصف الأول: العناوين
+        const headers = jsonData[0] as string[]; // الصف الأول: العناوين
         const values = jsonData[1];  // الصف الثاني: القيم
 
         // تعيين تخطيط Excel بناءً على المثال الذي أرسلته
@@ -170,20 +168,45 @@ export class ZakahService {
           'الذمم الدائنة': 'accountPayable',
           'المصاريف': 'expenses',
           'قروض قصيرة الأجل': 'shortTermLoans',
-          'قيمة الذهب': 'goldWeightInGrams'
+          'ديون طويلة الأجل (الجزء السنوي)':'longTermDebt'
         };
 
         // معالجة كل عمود
-        headers.forEach((header: any, index: number) => {
-          if (header && columnMapping[header as string]) {
-            const field = columnMapping[header as string];
+        headers.forEach((header: string, index: number) => {
+          if (header && columnMapping[header]) {
+            const field = columnMapping[header];
             const value = values[index];
 
             // تحويل القيمة إلى عدد، إذا لم تكن صحيحة ضع 0
             const parsedValue = this.parseNumber(value);
 
-            // استخدام type assertion للتعامل مع dynamic keys
-            (parsedData as any)[field] = parsedValue;
+            // استخدام Type assertion للتعامل مع dynamic keys
+            switch (field) {
+              case 'cash':
+                parsedData.cash = parsedValue;
+                break;
+              case 'stocks':
+                parsedData.stocks = parsedValue;
+                break;
+              case 'inventory':
+                parsedData.inventory = parsedValue;
+                break;
+              case 'receivables':
+                parsedData.receivables = parsedValue;
+                break;
+              case 'accountPayable':
+                parsedData.accountPayable = parsedValue;
+                break;
+              case 'expenses':
+                parsedData.expenses = parsedValue;
+                break;
+              case 'shortTermLoans':
+                parsedData.shortTermLoans = parsedValue;
+                break;
+              case 'longTermDebt':
+                parsedData.longTermDebt = parsedValue;
+                break;
+            }
           }
         });
       }
