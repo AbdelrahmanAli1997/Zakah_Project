@@ -44,8 +44,8 @@ spring:
 
 
 server:
-#  servlet:
-#    context-path: "/api/v1"
+  servlet:
+    context-path: "/api/v1"
   error:
     include-message: ALWAYS
   tomcat:

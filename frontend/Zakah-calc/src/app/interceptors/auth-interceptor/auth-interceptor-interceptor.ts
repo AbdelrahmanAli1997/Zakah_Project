@@ -3,12 +3,15 @@ import { AuthStorageService } from '../../services/storage-service/StorageServic
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
  const PUBLIC_ENDPOINTS = [
-  '/auth/login',
-  '/auth/register',
-  '/auth/refresh-token',
-  '/auth/verify-account',
-  '/auth/password/forget-password',
-  '/auth/password/reset-password'
+  '/api/v1/auth/login',
+  '/api/v1/auth/register',
+  '/api/v1/auth/refresh-token',
+  '/api/v1/auth/account/verify-account',
+  '/api/v1/auth/account/resend-otp',
+  '/api/v1/auth/password/forget-password',
+  '/api/v1/auth/password/verify-otp',
+  '/api/v1/auth/password/resend-otp',
+  '/api/v1/auth/password/reset-password',
 ];
 
 

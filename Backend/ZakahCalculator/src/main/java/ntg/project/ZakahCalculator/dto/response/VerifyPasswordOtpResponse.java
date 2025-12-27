@@ -7,8 +7,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class VerifyOtpResponse {
-
+public class VerifyPasswordOtpResponse {
     private String message;
     private String resetToken;
 }

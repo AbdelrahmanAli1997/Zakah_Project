@@ -16,7 +16,7 @@ public class UserMapper {
     public User toEntity(RegistrationRequest request) {
         if (request == null) return null;
         User user = new User();
-        user.setName(request.getFirstName() + " " + request.getLastName());
+        user.setName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setPassword(request.getPassword());
         user.setRoles(Collections.emptyList());
@@ -27,12 +27,8 @@ public class UserMapper {
 
     /* ================= Profile Update ================= */
     public void updateUserFromRequest(ProfileUpdateRequest request, User user) {
-        if (request == null || user == null) return;
-        String firstName = request.getFirstName() != null ? request.getFirstName() : "";
-        String lastName = request.getLastName() != null ? request.getLastName() : "";
-        if (!firstName.isEmpty() || !lastName.isEmpty()) {
-            user.setName(firstName + " " + lastName);
-        }
+        if (request.getFullName().equals(user.getName())) return;
+        user.setName(request.getFullName());
     }
 
     public ProfileUpdateResponse userToProfileUpdateResponse(User user) {
@@ -51,6 +47,7 @@ public class UserMapper {
             response.setUserType(user.getRoles().get(0).getType());
         }
         response.setVerified(user.isVerified());
+        response.setDeleted(user.isDeleted());
         return response;
     }
 
@@ -60,13 +57,6 @@ public class UserMapper {
                 .message("Account deleted successfully")
                 .deletedAt(deletedAt)
                 .restoreUntil(restoreUntil)
-                .build();
-    }
-
-    /* ================= Verify Account Response ================= */
-    public VerifyAccountResponse toVerifyAccountResponse() {
-        return VerifyAccountResponse.builder()
-                .message("Account verified successfully")
                 .build();
     }
 

@@ -2,7 +2,7 @@ package ntg.project.ZakahCalculator.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import ntg.project.ZakahCalculator.dto.response.VerifyOtpResponse;
+import ntg.project.ZakahCalculator.dto.response.VerifyPasswordOtpResponse;
 import ntg.project.ZakahCalculator.entity.OtpCode;
 import ntg.project.ZakahCalculator.entity.User;
 import ntg.project.ZakahCalculator.entity.util.OtpType;
@@ -16,29 +16,36 @@ import ntg.project.ZakahCalculator.service.OtpService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
 public class OtpServiceImpl implements OtpService {
 
-    private final OtpCodeRepository otpCodeRepository;
+    private final OtpCodeRepository otpRepo;
+    private final UserRepository userRepo;
     private final EmailService emailService;
-    private final UserRepository userRepository;
-    private final OtpCodeMapper otpCodeMapper;
+    private final OtpCodeMapper otpMapper;
 
     @Override
-    public OtpCode generateAndSend(User user, OtpType type) {
+    public void sendOrResend(String email, OtpType type) {
 
-        OtpCode otp = otpCodeMapper.toEntity(
-                user,
-                generateOtp(),
-                type
-        );
+        User user = userRepo.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        otpCodeRepository.save(otp);
+        OtpCode otp = otpRepo.findByUser(user)
+                .orElseGet(() -> OtpCode.builder()
+                        .user(user)
+                        .build()
+                );
+
+        if (otp.getId() == null) {
+            otp.initialize(generateOtp(), type);
+        } else {
+            otp.regenerate(generateOtp(), type);
+        }
+
+        otpRepo.save(otp);
 
         emailService.sendEmail(
                 user.getEmail(),
@@ -47,52 +54,49 @@ public class OtpServiceImpl implements OtpService {
                 otp.getCode()
         );
 
-        log.info("OTP sent to {} for {}", user.getEmail(), type);
-        return otp;
+        log.info("OTP sent to {} [{}]", user.getEmail(), type);
     }
 
     @Override
-    public OtpCode validateOtp(String code, OtpType type) {
+    public void verifyOtp(User user, String code, OtpType type) {
 
-        OtpCode otp = otpCodeRepository
-                .findByCodeAndTypeAndUsedFalse(code, type)
+        OtpCode otp = otpRepo.findByUserAndType(user, type)
                 .orElseThrow(() -> new BusinessException(ErrorCode.OTP_TOKEN_INVALID));
 
-        if (!otp.isValid()) {
+        if (!otp.isValid(code)) {
             throw new BusinessException(ErrorCode.OTP_TOKEN_INVALID);
         }
 
-        otp.markAsUsed();
-        return otp;
+        otp.markUsed();
     }
 
     @Override
-    public VerifyOtpResponse verifyPasswordResetOtp(String otpCode) {
+    public VerifyPasswordOtpResponse verifyPasswordResetOtp(User user, String code) {
 
-        OtpCode otp = validateOtp(otpCode, OtpType.PASSWORD_RESET);
-        otp.setResetToken(UUID.randomUUID().toString());
+        OtpCode otp = otpRepo.findByUserAndType(user, OtpType.PASSWORD_RESET)
+                .orElseThrow(() -> new BusinessException(ErrorCode.OTP_TOKEN_INVALID));
 
-        return otpCodeMapper.toVerifyOtpResponse(otp);
+        if (!otp.isValid(code)) {
+            throw new BusinessException(ErrorCode.OTP_TOKEN_INVALID);
+        }
+
+        otp.markUsed();
+        otp.generateResetToken();
+
+        return otpMapper.toVerifyOtpResponse(otp);
     }
 
     @Override
-    public void resendVerificationOtp(String email) {
+    public User getUserByResetToken(String resetToken) {
 
-        User user = userRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        OtpCode otp = otpRepo.findByResetToken(resetToken)
+                .orElseThrow(() -> new BusinessException(ErrorCode.OTP_TOKEN_INVALID));
 
-        OtpCode otp = otpCodeRepository.findByUserId(user.getId()).orElse(new OtpCode());
-        otp.setCode(generateOtp());
-        otpCodeRepository.save(otp);
+        if (!otp.isResetTokenValid(resetToken)) {
+            throw new BusinessException(ErrorCode.OTP_TOKEN_EXPIRED);
+        }
 
-        emailService.sendEmail(
-                user.getEmail(),
-                user.getName(),
-                otp.getType(),
-                otp.getCode()
-        );
-
-        log.info("OTP re-sent to {} for {}", user.getEmail(), otp.getType());
+        return otp.getUser();
     }
 
     private String generateOtp() {

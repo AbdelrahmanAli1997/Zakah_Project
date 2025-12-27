@@ -3,9 +3,6 @@ package ntg.project.ZakahCalculator.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import ntg.project.ZakahCalculator.dto.request.*;
 import ntg.project.ZakahCalculator.dto.response.*;
 
@@ -22,10 +19,12 @@ public interface AuthenticationService {
     ForgetPasswordResponse forgetPassword(ForgetPasswordRequest request) throws MessagingException;
 
     @Transactional
-    VerifyOtpResponse verifyOtp(VerifyOtpRequest request);
+    VerifyPasswordOtpResponse verifyPasswordOtp(VerifyOtpRequest request);
 
     @Transactional
     ResetPasswordResponse resetPassword(ResetPasswordRequest request);
 
-    void resendVerificationOtp(ResendOtpRequest request);
+    void resendAccountVerificationOtp(ResendOtpRequest request);
+
+    void resendPasswordVerificationOtp(ResendOtpRequest request);
 }

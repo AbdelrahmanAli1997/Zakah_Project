@@ -3,7 +3,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { DebugElement } from '@angular/core';
 
-import { NewPassComponent } from './new-pass.component';
+import { NewPassComponent } from './new-password.component';
 
 describe('NewPassComponent', () => {
   let component: NewPassComponent;

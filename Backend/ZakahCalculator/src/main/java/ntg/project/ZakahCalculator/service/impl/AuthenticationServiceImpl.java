@@ -7,7 +7,7 @@ import ntg.project.ZakahCalculator.dto.request.*;
 import ntg.project.ZakahCalculator.dto.response.AuthenticationResponse;
 import ntg.project.ZakahCalculator.dto.response.ForgetPasswordResponse;
 import ntg.project.ZakahCalculator.dto.response.ResetPasswordResponse;
-import ntg.project.ZakahCalculator.dto.response.VerifyOtpResponse;
+import ntg.project.ZakahCalculator.dto.response.VerifyPasswordOtpResponse;
 import ntg.project.ZakahCalculator.entity.User;
 import ntg.project.ZakahCalculator.entity.util.OtpType;
 import ntg.project.ZakahCalculator.exception.BusinessException;
@@ -42,6 +42,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserMapper userMapper;
     private final AuthenticationMapper authenticationMapper;
 
+    /* ================= LOGIN ================= */
+
     @Override
     public AuthenticationResponse login(AuthenticationRequest request) {
 
@@ -55,11 +57,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         User user = (User) auth.getPrincipal();
 
         if (!user.isVerified()) {
-            otpService.resendVerificationOtp(user.getEmail());
+            otpService.sendOrResend(user.getEmail(), OtpType.EMAIL_VERIFICATION);
             throw new BusinessException(ErrorCode.ACCOUNT_NOT_VERIFIED);
         }
+
         return generateTokens(user);
     }
+
+    /* ================= REGISTER ================= */
 
     @Override
     @Transactional
@@ -79,26 +84,28 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         User savedUser = userRepository.save(user);
 
-        otpService.generateAndSend(savedUser, OtpType.EMAIL_VERIFICATION);
+        otpService.sendOrResend(savedUser.getEmail(), OtpType.EMAIL_VERIFICATION);
 
         log.info("User registered successfully: {}", savedUser.getEmail());
     }
+
+    /* ================= VERIFY ACCOUNT ================= */
 
     @Override
     @Transactional
     public AuthenticationResponse verifyAccount(VerifyAccountRequest request) {
 
-        var otp = otpService.validateOtp(
-                request.getOtpCode(),
-                OtpType.EMAIL_VERIFICATION
-        );
+        User user = getByEmail(request.getEmail());
 
-        User user = otp.getUser();
+        otpService.verifyOtp(user, request.getOtpCode(), OtpType.EMAIL_VERIFICATION);
+
         user.setVerified(true);
         userRepository.save(user);
 
         return generateTokens(user);
     }
+
+    /* ================= REFRESH TOKEN ================= */
 
     @Override
     public AuthenticationResponse refreshToken(RefreshRequest request) {
@@ -117,21 +124,31 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         );
     }
 
+    /* ================= FORGET PASSWORD ================= */
+
     @Override
     @Transactional
     public ForgetPasswordResponse forgetPassword(ForgetPasswordRequest request) {
 
         User user = getByEmail(request.getEmail());
-        otpService.generateAndSend(user, OtpType.PASSWORD_RESET);
+
+        otpService.sendOrResend(user.getEmail(), OtpType.PASSWORD_RESET);
 
         return userMapper.toForgotPasswordResponse(user);
     }
 
+    /* ================= VERIFY RESET OTP ================= */
+
     @Override
     @Transactional
-    public VerifyOtpResponse verifyOtp(VerifyOtpRequest request) {
-        return otpService.verifyPasswordResetOtp(request.getOtp());
+    public VerifyPasswordOtpResponse verifyPasswordOtp(VerifyOtpRequest request) {
+
+        User user = getByEmail(request.getEmail());
+
+        return otpService.verifyPasswordResetOtp(user, request.getOtp());
     }
+
+    /* ================= RESET PASSWORD ================= */
 
     @Override
     @Transactional
@@ -141,12 +158,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
         }
 
-        var otp = otpService.validateOtp(
-                request.getResetToken(),
-                OtpType.PASSWORD_RESET
-        );
-
-        User user = otp.getUser();
+        User user = otpService.getUserByResetToken(request.getResetToken());
 
         if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
             throw new BusinessException(ErrorCode.CHANGE_PASSWORD_MISMATCH);
@@ -158,9 +170,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return userMapper.toResetPasswordResponse(user);
     }
 
-    @Override
-    public void resendVerificationOtp(ResendOtpRequest request) {
+    /* ================= RESEND VERIFY OTP ================= */
 
+    @Override
+    public void resendAccountVerificationOtp(ResendOtpRequest request) {
+        otpService.sendOrResend(request.getEmail(), OtpType.EMAIL_VERIFICATION);
+    }
+
+    @Override
+    public void resendPasswordVerificationOtp(ResendOtpRequest request) {
+        otpService.sendOrResend(request.getEmail(), OtpType.PASSWORD_RESET);
     }
 
     /* ================= HELPERS ================= */

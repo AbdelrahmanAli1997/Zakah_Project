@@ -10,9 +10,7 @@ import lombok.*;
 @Builder
 public class ProfileUpdateRequest {
 
-    @Size(min = 1, max = 25, message = "VALIDATION.UPDATE_PROFILE.FIRSTNAME.SIZE")
-    private String firstName;
+    @Size(min = 1, max = 25, message = "VALIDATION.UPDATE_PROFILE.FULLNAME.SIZE")
+    private String fullName;
 
-    @Size(min = 1, max = 25, message = "VALIDATION.UPDATE_PROFILE.LASTNAME.SIZE")
-    private String lastName;
 }

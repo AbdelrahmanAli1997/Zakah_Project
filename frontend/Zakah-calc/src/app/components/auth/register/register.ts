@@ -65,8 +65,7 @@ export class Register implements OnInit {
     const nameParts = this.registerForm.value.name.trim().split(' ');
 
     const request: RegistrationRequest = {
-      firstName: nameParts[0],
-      lastName: nameParts.slice(1).join(' ') || '',
+      fullName: this.registerForm.value.name,
       email: this.registerForm.value.email,
       password: this.registerForm.value.password,
       confirmPassword: this.registerForm.value.confirmPassword,

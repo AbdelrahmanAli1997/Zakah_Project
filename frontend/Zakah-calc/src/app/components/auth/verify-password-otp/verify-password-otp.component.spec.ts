@@ -3,7 +3,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { DebugElement } from '@angular/core';
 
-import { VerfiyOtpPassComponent } from './verfiy-otp-pass.component';
+import { VerfiyOtpPassComponent } from './verify-password-otp.component';
 
 describe('VerfiyOtpPassComponent', () => {
   let component: VerfiyOtpPassComponent;

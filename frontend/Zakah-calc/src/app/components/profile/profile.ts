@@ -77,8 +77,7 @@ export class Profile implements OnInit {
     const parts = fullName.split(' ');
 
     const request: ProfileUpdateRequest = {
-      firstName: parts[0],
-      lastName: parts.slice(1).join(' ')
+      fullName: this.infoForm.value.name
     };
 
     this.userService.updateProfile(request).subscribe({

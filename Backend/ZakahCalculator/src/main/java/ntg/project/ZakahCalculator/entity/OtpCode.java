@@ -3,26 +3,34 @@ package ntg.project.ZakahCalculator.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import ntg.project.ZakahCalculator.entity.util.OtpType;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
-@Table(name = "otp_codes")
+@Table(
+        name = "otp_codes",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_id"})
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EntityListeners(AuditingEntityListener.class)
 public class OtpCode {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "otpCode_seq_id")
-    @SequenceGenerator(name = "otpCode_seq_id",sequenceName = "otpCode_seq_id",allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "otpCode_seq_id")
+    @SequenceGenerator(
+            name = "otpCode_seq_id",
+            sequenceName = "otpCode_seq_id",
+            allocationSize = 1
+    )
     private Long id;
 
-    @OneToOne
+    @OneToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -30,10 +38,13 @@ public class OtpCode {
     private String code;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OtpType type;
 
-    private boolean used = false;
+    @Column(nullable = false)
+    private boolean used;
 
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
@@ -42,32 +53,38 @@ public class OtpCode {
     @Column(unique = true)
     private String resetToken;
 
-    @PrePersist
-    protected void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-        if (expiresAt == null) {
-            expiresAt = LocalDateTime.now().plusMinutes(5);
-        }
-        used = false;
+    /* ================= BUSINESS METHODS ================= */
+
+    public void initialize(String code, OtpType type) {
+        this.code = code;
+        this.type = type;
+        this.used = false;
+        this.resetToken = null;
+        this.createdAt = LocalDateTime.now();
+        this.expiresAt = this.createdAt.plusMinutes(5);
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        createdAt = LocalDateTime.now();
-        used = false;
-        expiresAt = LocalDateTime.now().plusMinutes(5);
+    public void regenerate(String code, OtpType type) {
+        initialize(code, type);
     }
 
-    public boolean isValid() {
-        return !used && LocalDateTime.now().isBefore(expiresAt);
+    public boolean isValid(String inputCode) {
+        return !used
+                && this.code.equals(inputCode)
+                && LocalDateTime.now().isBefore(expiresAt);
     }
 
+    public boolean isResetTokenValid(String token) {
+        return resetToken != null
+                && resetToken.equals(token)
+                && LocalDateTime.now().isBefore(expiresAt);
+    }
 
-    public void markAsUsed() {
+    public void markUsed() {
         this.used = true;
     }
 
+    public void generateResetToken() {
+        this.resetToken = UUID.randomUUID().toString();
+    }
 }
-

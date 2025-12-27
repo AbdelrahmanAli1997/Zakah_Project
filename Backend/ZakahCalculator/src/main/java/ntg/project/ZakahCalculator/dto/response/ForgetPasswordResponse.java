@@ -8,6 +8,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ForgetPasswordResponse {
-    private String message;
     private String email;
+    private String message;
 }

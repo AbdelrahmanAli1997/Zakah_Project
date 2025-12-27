@@ -5,7 +5,7 @@ import {
   AuthenticationResponse,
   ForgetPasswordResponse,
   ResetPasswordResponse,
-  VerifyOtpResponse
+  VerifyPasswordOtpResponse
 } from '../../models/response/IAuthResponse';
 import { AuthStorageService } from '../storage-service/StorageService';
 import {
@@ -52,19 +52,6 @@ this.isLoggedIn.set(!!AuthStorageService.getAccessToken());
     return this.http.post<void>(`${this.BASE_URL}/register`, request);
   }
 
-  verifyAccount(
-    request: VerifyAccountRequest
-  ): Observable<AuthenticationResponse> {
-    return this.http
-      .post<AuthenticationResponse>(`${this.BASE_URL}/verify-account`, request)
-      .pipe(
-        tap(res => {
-          AuthStorageService.saveTokens(res)
-          this.isLoggedIn.set(true);
-        })
-      );
-  }
-
   refreshToken(): Observable<AuthenticationResponse> {
     const refreshToken = AuthStorageService.getRefreshToken();
 
@@ -78,6 +65,22 @@ this.isLoggedIn.set(!!AuthStorageService.getAccessToken());
       );
   }
 
+  /* ================= ACCOUNT VERIFICATION ================= */
+  verifyAccount(request: VerifyAccountRequest): Observable<AuthenticationResponse> {
+    return this.http
+      .post<AuthenticationResponse>(`${this.BASE_URL}/account/verify-account`, request)
+      .pipe(
+        tap(res => {
+          AuthStorageService.saveTokens(res)
+          this.isLoggedIn.set(true);
+        })
+      );
+  }
+
+  resendAccountOtp(request: ResendOtpRequest):Observable<void>{
+    return this.http.post<void>(`${this.BASE_URL}/account/resend-otp`, request);
+  }
+
   /* ================= PASSWORD ================= */
 
   forgetPassword(
@@ -89,13 +92,17 @@ this.isLoggedIn.set(!!AuthStorageService.getAccessToken());
     );
   }
 
-  verifyOtp(
+  verifyPasswordOtp(
     request: VerifyOtpRequest
-  ): Observable<VerifyOtpResponse> {
-    return this.http.post<VerifyOtpResponse>(
+  ): Observable<VerifyPasswordOtpResponse> {
+    return this.http.post<VerifyPasswordOtpResponse>(
       `${this.BASE_URL}/password/verify-otp`,
       request
     );
+  }
+
+  resendPasswordOtp(request: ResendOtpRequest): Observable<void>{
+    return this.http.post<void>(`${this.BASE_URL}/password/resend-otp`,request);
   }
 
   resetPassword(
@@ -107,10 +114,6 @@ this.isLoggedIn.set(!!AuthStorageService.getAccessToken());
     );
   }
 
-  /* ================= OTP ================= */
-  resendOtp(request: ResendOtpRequest): Observable<void>{
-    return this.http.post<void>(`${this.BASE_URL}/password/reset-password`,request);
-  }
 
   /* ================= LOGOUT ================= */
 

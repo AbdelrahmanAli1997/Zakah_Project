@@ -1,4 +1,7 @@
-
+/* ===========================
+   AUTHENTICATION & USER
+   =========================== */
+import {UserType} from '../enums/UserType';
 
 export interface AuthenticationResponse {
   accessToken: string;
@@ -6,39 +9,41 @@ export interface AuthenticationResponse {
   userResponse: UserResponse;
 }
 
+export interface UserResponse {
+  email: string;
+  fullName: string;
+  userType: UserType;
+  isVerified: boolean;
+  isDeleted: boolean;
+}
+
+/* ===========================
+   ACCOUNT MANAGEMENT
+   =========================== */
 export interface DeleteAccountResponse {
   message: string;
   deletedAt: string;     // LocalDate -> ISO string
   restoreUntil: string;  // LocalDate -> ISO string
 }
 
-export interface ForgetPasswordResponse {
-  message: string;
-  email: string;
-}
 export interface ProfileUpdateResponse {
   fullName: string;
 }
 
+/* ===========================
+   PASSWORD MANAGEMENT
+   =========================== */
+export interface ForgetPasswordResponse {
+  email: string;
+  message: string;
+}
+
 export interface ResetPasswordResponse {
-  message: string;
   email: string;
-}
-
-import {UserType} from '../enums/UserType';
-
-export interface UserResponse {
-  email: string;
-  fullName: string;
-  userType: UserType;
-  isVerified: boolean;
-}
-
-export interface VerifyAccountResponse {
   message: string;
 }
 
-export interface VerifyOtpResponse {
+export interface VerifyPasswordOtpResponse {
   message: string;
-  resetToken?: string; // optional لو بييجي في سيناريوهات معينة
+  resetToken?: string;   // موجود بعد تحقق OTP
 }

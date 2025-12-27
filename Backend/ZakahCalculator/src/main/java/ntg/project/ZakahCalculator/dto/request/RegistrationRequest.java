@@ -12,13 +12,11 @@ import ntg.project.ZakahCalculator.entity.util.UserType;
 @NoArgsConstructor
 @Builder
 public class RegistrationRequest {
-    @NotBlank(message = "VALIDATION.REGISTRATION.FIRSTNAME.NOT_BLANK")
-    @Size(min = 1, max = 50, message = "VALIDATION.REGISTRATION.FIRSTNAME.SIZE")
-    private String firstName;
 
-    @NotBlank(message = "VALIDATION.REGISTRATION.LASTNAME.NOT_BLANK")
-    @Size(min = 1, max = 50, message = "VALIDATION.REGISTRATION.LASTNAME.SIZE")
-    private String lastName;
+    // TODO: Test
+    @NotBlank(message = "VALIDATION.REGISTRATION.FULLNAME.NOT_BLANK")
+    @Size(min = 1, max = 50, message = "VALIDATION.REGISTRATION.FULLNAME.SIZE")
+    private String fullName;
 
     @NotBlank(message = "VALIDATION.REGISTRATION.USERNAME.NOT_BLANK")
     @Size(min = 1, max = 40, message = "VALIDATION.REGISTRATION.USERNAME.SIZE")
