@@ -1,6 +1,7 @@
 package ntg.project.ZakahCalculator.dto.request;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
 
@@ -34,7 +35,7 @@ public class ZakahIndividualRecordRequest {
     private BigDecimal goldPrice;
 
     @NotNull(message = "هذا الحقل مطلوب، من فضلك لا تتركه فارغًا.")
-    @PositiveOrZero(message = "من فضلك أدخل رقمًا أكبر من أو يساوي صفر.")
+    @PastOrPresent(message = "من فضلك ادخل تاريخ النموذج ( يجب ان يكون تاريخ سابق او تاريخ اليوم ).")
     private LocalDate calculationDate;
 
     @NotNull(message = "هذا الحقل مطلوب، من فضلك لا تتركه فارغًا.")

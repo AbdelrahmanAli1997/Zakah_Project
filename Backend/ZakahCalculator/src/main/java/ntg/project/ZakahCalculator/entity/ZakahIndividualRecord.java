@@ -33,11 +33,7 @@ public class ZakahIndividualRecord extends ZakahRecord {
     @Column(precision = 15, scale = 2)
     private BigDecimal bonds;
 
-    @NotNull(message = "Calculation date is required")
-    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate calculationDate;
 
-    @NotNull(message = "User ID is required")
-    private Long userId;
 }
 

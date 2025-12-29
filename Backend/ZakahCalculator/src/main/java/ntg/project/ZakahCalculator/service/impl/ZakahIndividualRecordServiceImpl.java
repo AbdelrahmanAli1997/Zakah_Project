@@ -82,7 +82,7 @@ public class ZakahIndividualRecordServiceImpl implements ZakahIndividualRecordSe
                 if (daysBetween < HAWL_PERIOD_DAYS) {
                     status = ZakahStatus.HAWL_NOT_COMPLETED;
                 } else {
-                    status = ZakahStatus.ZAKAH_DUE;
+                    status = ZakahStatus.LAST_RECORD_DUE_AND_NEW_HAWL_BEGIN;
                 }
             } else {
                 status = ZakahStatus.ZAKAH_DUE;

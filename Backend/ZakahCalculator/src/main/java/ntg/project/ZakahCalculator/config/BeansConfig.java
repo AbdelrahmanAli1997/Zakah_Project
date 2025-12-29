@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @EnableScheduling
+@EnableJpaAuditing
 public class BeansConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
