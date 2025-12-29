@@ -18,7 +18,7 @@ import java.util.List;
 @RequestMapping("/zakah/company")
 @RequiredArgsConstructor
 @Slf4j
-public class CompanyRecordController {
+public class ZakahCompanyRecordController {
 
     private final ZakahCompanyRecordService zakahCompanyRecordService;
 

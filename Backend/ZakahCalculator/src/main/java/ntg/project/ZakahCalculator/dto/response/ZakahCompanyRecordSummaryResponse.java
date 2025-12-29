@@ -17,6 +17,4 @@ public class ZakahCompanyRecordSummaryResponse {
     private LocalDate balanceSheetDate;
     private ZakahStatus status;
     private BigDecimal zakahAmount;
-
-
 }
