@@ -53,11 +53,11 @@
     </ul>
 
     <!-- Mobile Hamburger -->
-  <div class="relative hidden md:block" 
-     #profileMenu 
-     appClickOutside 
+  <div class="relative hidden md:block"
+     #profileMenu
+     appClickOutside
      (clickOutside)="isProfileMenuOpen.set(false)">
-     
+
     <a (click)="toggleProfileMenu($event) "
        class="flex items-center gap-3 border rounded-full p-2 hover:bg-slate-100 transition-colors hover:cursor-pointer hover:border-emerald-400">
         <div class="text-start">
@@ -81,4 +81,4 @@
         </div>
     </div>
     }
-</div>
+  </div></nav>

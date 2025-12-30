@@ -7,17 +7,21 @@ import { UserType } from '../../models/enums/UserType';
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive ],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './navbar.html',
 })
 export class Navbar {
-  private router = inject(Router);
   private readonly _AuthService = inject(AuthService)
   name = AuthStorageService.getUserFullName();
   type = AuthStorageService.getUserType();
   //  : UserResponse
 
   isProfileMenuOpen = signal(false);
+
+
+  constructor(private router: Router) {
+
+  }
 
   // Inside your component class
   toggleProfileMenu(event: Event) {
@@ -31,7 +35,7 @@ export class Navbar {
 
   switchWizard() {
     this.isProfileMenuOpen.set(false);
-    if(this.type === UserType.ROLE_INDIVIDUAL){
+    if(this.type === UserType.ROLE_COMPANY){
       this.router.navigate(['/individual/wizard']);
     }else{
       this.router.navigate(['/company/wizard']);

@@ -70,7 +70,7 @@ export const routes: Routes = [
     ],
     canActivate: [authGuard],
   },
-  { 
+  {
     path: 'individual',
     children: [
       { path: 'wizard', loadComponent: () => import('./components/individual/wizard-individual/wizard-individual.component').then((m) => m.WizardIndividualComponent) },
@@ -78,7 +78,6 @@ export const routes: Routes = [
       {
         path: 'individual-after-calc',
         loadComponent: () => import('./components/individual/individual-after-calc/individual-after-calc.component').then((m) => m.IndividualAfterCalcComponent),
-        canActivate: [authGuard],
       },
     ],
     canActivate: [authGuard],

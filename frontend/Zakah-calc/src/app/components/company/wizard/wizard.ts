@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { ZakahCompanyRecordRequest } from '../../../models/request/ZakahCompanyRequest';
 import { ZakahCompanyRecordService } from '../../../services/zakah-company-service/zakah-company-service';
 import { ZakahCompanyRecordSummaryResponse } from '../../../models/response/ZakahCompanyResponse';
+import {ZakahCompanyExcelService} from '../../../services/zakah-company-service/zakah-company-excel-service';
 
 @Component({
   selector: 'app-wizard',
@@ -49,7 +50,7 @@ export class ZakahCompanyRecordComponent {
 
   router = inject(Router);
 
-  constructor(private zakahService: ZakahCompanyRecordService) {}
+  constructor(private zakahService: ZakahCompanyRecordService,private excelService: ZakahCompanyExcelService) {}
 
   next() {
     if (this.currentStep() < this.steps().length - 1) {
@@ -71,8 +72,27 @@ export class ZakahCompanyRecordComponent {
   }
 
   onFileChange(event: Event) {
-    console.log('Excel upload later');
+    const input = event.target as HTMLInputElement;
+
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+
+    const file = input.files[0];
+
+    this.excelService.readCompanyExcel(file)
+      .then(dataFromExcel => {
+        // ✅ دمج بيانات الإكسل مع الفورم الحالية
+        this.formData.update(prev => ({
+          ...prev,
+          ...dataFromExcel
+        }));
+      })
+      .catch(err => {
+        console.error('Excel Read Error:', err);
+      });
   }
+
 
   calculate() {
   this.isCalculating.set(true);
