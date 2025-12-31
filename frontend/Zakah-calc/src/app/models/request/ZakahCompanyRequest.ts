@@ -1,5 +1,6 @@
+// src/app/models/request/ZakahCompanyRequest.ts
 export interface ZakahCompanyRecordRequest {
-  balanceSheetDate: string; // dd-MM-yyyy
+  balanceSheetDate: string;
 
   // Assets
   cashEquivalents: number;
@@ -16,4 +17,3 @@ export interface ZakahCompanyRecordRequest {
   // Zakah Info
   goldPrice: number;
 }
- 

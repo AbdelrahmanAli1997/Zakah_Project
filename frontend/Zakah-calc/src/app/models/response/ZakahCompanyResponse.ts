@@ -1,4 +1,5 @@
-import {ZakahStatus} from '../enums/ZakahStatus';
+// src/app/models/response/ZakahCompanyResponse.ts
+import { ZakahStatus } from '../enums/ZakahStatus';
 
 export interface ZakahCompanyRecordResponse {
   id: number;
@@ -12,7 +13,7 @@ export interface ZakahCompanyRecordResponse {
 
   // Liabilities
   accountsPayable: number;
-  accruedExpenses: number; 
+  accruedExpenses: number;
   shortTermLiability: number;
   yearlyLongTermLiabilities: number;
 

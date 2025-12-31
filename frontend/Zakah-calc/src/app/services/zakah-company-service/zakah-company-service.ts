@@ -1,27 +1,128 @@
+// src/app/services/zakah-company-service/zakah-company-service.ts
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import {
-  ZakahCompanyRecordResponse,
-  ZakahCompanyRecordSummaryResponse
-} from '../../models/response/ZakahCompanyResponse';
-import * as XLSX from 'xlsx';
+import { ZakahCompanyRecordResponse } from '../../models/response/ZakahCompanyResponse';
 import { ZakahCompanyRecordRequest } from '../../models/request/ZakahCompanyRequest';
-
+import { ZakahFormData } from '../../models/zakah.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ZakahCompanyRecordService {
-
   private readonly BASE_URL = `${environment.apiUrl}/zakah/company`;
 
   latestResult = signal<ZakahCompanyRecordResponse | null>(null);
-  history = signal<ZakahCompanyRecordSummaryResponse[]>([]);
+  history = signal<ZakahCompanyRecordResponse[]>([]);
+
+  // إشارات للـ wizard
+  formData = signal<ZakahFormData>(this.getInitialFormData());
+  currentWizardStep = signal<number>(0);
+  wizardSteps = signal<string[]>(['البداية', 'الأصول', 'الالتزامات', 'التفاصيل', 'مراجعة']);
+  isCalculating = signal<boolean>(false);
 
   constructor(private http: HttpClient) {}
 
+  private getInitialFormData(): ZakahFormData {
+    return {
+      balanceSheetDate: '',
+      cash: 0,
+      stocks: 0,
+      inventory: 0,
+      receivables: 0,
+      accountPayable: 0,
+      expenses: 0,
+      shortTermLoans: 0,
+      goldWeightInGrams: 0,
+      goldPricePerGram: 75.21,
+      longTermDebt: 0,
+      zakahAmount: 0
+    };
+  }
+
+  updateFormData(patch: Partial<ZakahFormData>): void {
+    this.formData.update(current => ({ ...current, ...patch }));
+  }
+
+  nextStep(): void {
+    const current = this.currentWizardStep();
+    const totalSteps = this.wizardSteps().length;
+    if (current < totalSteps - 1) {
+      this.currentWizardStep.set(current + 1);
+    }
+  }
+
+  prevStep(): void {
+    const current = this.currentWizardStep();
+    if (current > 0) {
+      this.currentWizardStep.set(current - 1);
+    }
+  }
+
+  goToStep(stepIndex: number): void {
+    if (stepIndex >= 0 && stepIndex < this.wizardSteps().length) {
+      this.currentWizardStep.set(stepIndex);
+    }
+  }
+
+  async calculateZakah(): Promise<void> {
+    this.isCalculating.set(true);
+
+    try {
+      const formData = this.formData();
+
+      // تحويل ZakahFormData إلى ZakahCompanyRecordRequest
+      const request: ZakahCompanyRecordRequest = {
+        balanceSheetDate: this.formatDateForAPI(formData.balanceSheetDate),
+        cashEquivalents: formData.cash,
+        accountsReceivable: formData.receivables,
+        inventory: formData.inventory,
+        investment: formData.stocks,
+        accountsPayable: formData.accountPayable,
+        accruedExpenses: formData.expenses,
+        shortTermLiability: formData.shortTermLoans,
+        yearlyLongTermLiabilities: formData.longTermDebt,
+        goldPrice: formData.goldPricePerGram
+      };
+
+      console.log('Sending request to API:', request);
+      const response = await this.calculateAndSave(request).toPromise();
+
+      if (response) {
+        this.latestResult.set(response);
+        this.updateFormData({ zakahAmount: response.zakahAmount });
+
+        // تحديث الـ history
+        this.history.update(history => [response, ...history]);
+      }
+
+    } catch (error) {
+      console.error('Error calculating zakah:', error);
+    } finally {
+      this.isCalculating.set(false);
+    }
+  }
+
+  private formatDateForAPI(dateStr: string): string {
+    if (!dateStr) return this.formatDate(new Date());
+
+    try {
+      const date = new Date(dateStr);
+      return this.formatDate(date);
+    } catch {
+      return this.formatDate(new Date());
+    }
+  }
+
+  private formatDate(date: Date): string {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  }
+
+  // الوظائف الأصلية للـ API
   calculateAndSave(
     request: ZakahCompanyRecordRequest
   ): Observable<ZakahCompanyRecordResponse> {
@@ -31,78 +132,21 @@ export class ZakahCompanyRecordService {
     );
   }
 
-  getAllSummaries(): Observable<ZakahCompanyRecordSummaryResponse[]> {
-    return this.http.get<ZakahCompanyRecordSummaryResponse[]>(
+  getAllSummaries(): Observable<ZakahCompanyRecordResponse[]> {
+    return this.http.get<ZakahCompanyRecordResponse[]>(
       `${this.BASE_URL}/summaries`
     );
   }
 
-  // GET /zakah/company/{id}
   getById(id: number): Observable<ZakahCompanyRecordResponse> {
     return this.http.get<ZakahCompanyRecordResponse>(
       `${this.BASE_URL}/${id}`
     );
   }
 
-  /* ================= DELETE ================= */
-
-  // DELETE /zakah/company/{id}
   deleteById(id: number): Observable<void> {
     return this.http.delete<void>(
       `${this.BASE_URL}/${id}`
     );
-  }
-
-  /* ================= READ EXCEL FILE ================= */
-  readCompanyExcel(file: File): Promise<Partial<ZakahCompanyRecordRequest>> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-
-      reader.onload = () => {
-        try {
-          const buffer = reader.result as ArrayBuffer;
-          const workbook = XLSX.read(buffer, { type: 'array' });
-
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-
-          // الصف يتحول مباشرة إلى Object بالـ headers
-          const rows = XLSX.utils.sheet_to_json<any>(worksheet, {
-            defval: 0
-          });
-
-          if (!rows.length) {
-            throw new Error('Excel file is empty');
-          }
-
-          resolve(this.mapRowToRequest(rows[0]));
-
-        } catch (err) {
-          reject(err);
-        }
-      };
-
-      reader.onerror = err => reject(err);
-      reader.readAsArrayBuffer(file);
-    });
-  }
-
-  private mapRowToRequest(row: any): Partial<ZakahCompanyRecordRequest> {
-    return {
-      cashEquivalents: this.toNumber(row['Cash Equivalents']),
-      accountsReceivable: this.toNumber(row['Accounts Receivable']),
-      inventory: this.toNumber(row['Inventory']),
-      investment: this.toNumber(row['Investment']),
-
-      accountsPayable: this.toNumber(row['Accounts Payable']),
-      accruedExpenses: this.toNumber(row['Accrued Expenses']),
-      shortTermLiability: this.toNumber(row['Short Term Liability']),
-      yearlyLongTermLiabilities: this.toNumber(row['Yearly Long Term Liabilities'])
-    };
-  }
-
-  private toNumber(value: any): number {
-    const num = Number(value);
-    return isNaN(num) ? 0 : num;
   }
 }

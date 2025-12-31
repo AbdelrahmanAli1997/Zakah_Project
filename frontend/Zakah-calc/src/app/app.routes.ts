@@ -1,6 +1,6 @@
 import {Routes} from '@angular/router';
 import {Login} from './components/auth/login/login';
-import {Register} from './components/auth/register/register';
+import {RegisterComponent} from './components/auth/register/register';
 import {Landing} from './components/landing/landing';
 import {ForgetPasswordComponent} from './components/auth/forget-password/forget-password.component';
 import {Intro} from './components/intro/intro';
@@ -20,7 +20,7 @@ export const routes: Routes = [
     children: [
       { path: '', component: Landing },
       { path: 'login', component: Login },
-      { path: 'register', component: Register },
+      { path: 'register', component: RegisterComponent },
 
       // ===== PASSWORD FLOW =====
       {

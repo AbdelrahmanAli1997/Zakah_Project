@@ -1,7 +1,7 @@
+// src/app/services/zakah-company-service/zakah-company-excel-service.ts
 import { Injectable } from '@angular/core';
 import * as XLSX from 'xlsx';
 import { ZakahCompanyRecordRequest } from '../../models/request/ZakahCompanyRequest';
-
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +9,7 @@ import { ZakahCompanyRecordRequest } from '../../models/request/ZakahCompanyRequ
 export class ZakahCompanyExcelService {
 
   /* ================= READ EXCEL FILE ================= */
-  readCompanyExcel(file: File): Promise<Partial<ZakahCompanyRecordRequest>> {
+  readCompanyExcel(file: File): Promise<ZakahCompanyRecordRequest> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
@@ -17,22 +17,38 @@ export class ZakahCompanyExcelService {
         try {
           const buffer = reader.result as ArrayBuffer;
           const workbook = XLSX.read(buffer, { type: 'array' });
-
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
 
-          // الصف يتحول مباشرة إلى Object بالـ headers
+          // تحويل الورقة إلى JSON
           const rows = XLSX.utils.sheet_to_json<any>(worksheet, {
-            defval: 0
+            defval: 0,
+            raw: false
           });
 
           if (!rows.length) {
             throw new Error('Excel file is empty');
           }
 
-          resolve(this.mapRowToRequest(rows[0]));
+          const firstRow = rows[0];
+          const result: ZakahCompanyRecordRequest = {
+            balanceSheetDate: this.formatDate(new Date()), // تاريخ اليوم كافتراضي
+            cashEquivalents: this.toNumber(firstRow['Cash Equivalents']),
+            accountsReceivable: this.toNumber(firstRow['Accounts Receivable']),
+            inventory: this.toNumber(firstRow['Inventory']),
+            investment: this.toNumber(firstRow['Investment']),
+            accountsPayable: this.toNumber(firstRow['Accounts Payable']),
+            accruedExpenses: this.toNumber(firstRow['Accrued Expenses']),
+            shortTermLiability: this.toNumber(firstRow['Short Term Liability']),
+            yearlyLongTermLiabilities: this.toNumber(firstRow['Yearly Long Term Liabilities']),
+            goldPrice: 75.21 // قيمة افتراضية
+          };
+
+          console.log('Excel data parsed (Request):', result);
+          resolve(result);
 
         } catch (err) {
+          console.error('Error reading Excel file:', err);
           reject(err);
         }
       };
@@ -42,22 +58,18 @@ export class ZakahCompanyExcelService {
     });
   }
 
-  private mapRowToRequest(row: any): Partial<ZakahCompanyRecordRequest> {
-    return {
-      cashEquivalents: this.toNumber(row['Cash Equivalents']),
-      accountsReceivable: this.toNumber(row['Accounts Receivable']),
-      inventory: this.toNumber(row['Inventory']),
-      investment: this.toNumber(row['Investment']),
-
-      accountsPayable: this.toNumber(row['Accounts Payable']),
-      accruedExpenses: this.toNumber(row['Accrued Expenses']),
-      shortTermLiability: this.toNumber(row['Short Term Liability']),
-      yearlyLongTermLiabilities: this.toNumber(row['Yearly Long Term Liabilities'])
-    };
-  }
-
   private toNumber(value: any): number {
+    if (value === null || value === undefined || value === '') {
+      return 0;
+    }
     const num = Number(value);
     return isNaN(num) ? 0 : num;
+  }
+
+  private formatDate(date: Date): string {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   }
 }
