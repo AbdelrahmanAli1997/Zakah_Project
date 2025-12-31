@@ -4,10 +4,16 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import ntg.project.ZakahCalculator.dto.request.*;
-import ntg.project.ZakahCalculator.dto.response.*;
+import ntg.project.ZakahCalculator.dto.response.AuthenticationResponse;
+import ntg.project.ZakahCalculator.dto.response.ForgetPasswordResponse;
+import ntg.project.ZakahCalculator.dto.response.ResetPasswordResponse;
+import ntg.project.ZakahCalculator.dto.response.VerifyPasswordOtpResponse;
 import ntg.project.ZakahCalculator.service.AuthenticationService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
@@ -15,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
-
+    
     /* ===========================
        AUTHENTICATION (LOGIN / REGISTER)
        =========================== */
@@ -30,6 +36,7 @@ public class AuthenticationController {
         authenticationService.register(request);
         return ResponseEntity.ok().build();
     }
+
 
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthenticationResponse> refreshToken(@RequestBody @Valid RefreshRequest request) {

@@ -62,3 +62,6 @@ frontend:
   url: "http://localhost:4200"
 mail:
   from: "madel25810@gmail.com"
+
+google:
+  password: "357538782F413F4428472B4B6250645"

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import {AfterViewInit, Component, ElementRef, OnInit, signal, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -20,12 +20,14 @@ export class Login implements OnInit {
   loginForm!: FormGroup;
   isLoading = signal(false);
   serverError = signal<string | null>(null);
+  @ViewChild('googleBtn', { static: true }) googleBtn!: ElementRef;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
   ) {}
+
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
