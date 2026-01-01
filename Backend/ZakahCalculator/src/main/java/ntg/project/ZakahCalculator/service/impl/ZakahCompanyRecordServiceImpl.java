@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 
 import static ntg.project.ZakahCalculator.exception.ErrorCode.*;
@@ -116,10 +117,13 @@ public class ZakahCompanyRecordServiceImpl implements ZakahCompanyRecordService 
     @Override
     public ZakahCompanyRecordResponse findLatestByUserId() {
         Long userId = userUtil.getAuthenticatedUserId();
-
-
+        List<ZakahStatus> statuses = Arrays.asList(
+                ZakahStatus.ELIGABLE_FOR_ZAKAH,
+                ZakahStatus.LAST_RECORD_DUE_AND_NEW_HAWL_BEGIN
+        );
         ZakahCompanyRecord latestRecord = recordRepository
-                .findTopByUserIdOrderByBalanceSheetDateDesc(userId)
+
+                .findTopByUserIdAndStatusInOrderByBalanceSheetDateDesc(userId,statuses)
                 .orElseThrow(() -> new BusinessException(
                         ZAKAH_RECORD_NOT_FOUND,
                         "No zakah records found for user"
@@ -130,10 +134,13 @@ public class ZakahCompanyRecordServiceImpl implements ZakahCompanyRecordService 
     @Override
     public ZakahCompanyRecordSummaryResponse findLatestSummaryByUserId() {
         Long userId = userUtil.getAuthenticatedUserId();
-
-
+        List<ZakahStatus> statuses = Arrays.asList(
+                ZakahStatus.ELIGABLE_FOR_ZAKAH,
+                ZakahStatus.LAST_RECORD_DUE_AND_NEW_HAWL_BEGIN
+        );
         ZakahCompanyRecord latestRecord = recordRepository
-                .findTopByUserIdOrderByBalanceSheetDateDesc(userId)
+
+                .findTopByUserIdAndStatusInOrderByBalanceSheetDateDesc(userId,statuses)
                 .orElseThrow(() -> new BusinessException(
                         ZAKAH_RECORD_NOT_FOUND,
                         "No zakah records found for user"

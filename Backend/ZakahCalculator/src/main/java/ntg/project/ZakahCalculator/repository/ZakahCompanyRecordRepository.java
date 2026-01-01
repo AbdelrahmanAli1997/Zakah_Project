@@ -1,6 +1,7 @@
 package ntg.project.ZakahCalculator.repository;
 
 import ntg.project.ZakahCalculator.entity.ZakahCompanyRecord;
+import ntg.project.ZakahCalculator.entity.util.ZakahStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public interface ZakahCompanyRecordRepository
     void deleteByIdAndUserId(Long id,Long userId);
 
     //Get the latest balance sheet record by user id
+    Optional<ZakahCompanyRecord> findTopByUserIdAndStatusInOrderByBalanceSheetDateDesc(Long userId,List<ZakahStatus> statuses);
     Optional<ZakahCompanyRecord> findTopByUserIdOrderByBalanceSheetDateDesc(Long userId);
 
 

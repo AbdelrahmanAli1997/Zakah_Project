@@ -36,5 +36,7 @@ public class ZakahIndividualRecord extends ZakahRecord {
 
     private LocalDate calculationDate;
 
+    private BigDecimal totalAssets;
+
 }
 

@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -68,8 +69,12 @@ public class ZakahIndividualRecordServiceImpl implements ZakahIndividualRecordSe
             zakahAmount = BigDecimal.ZERO;
         } else {
             zakahAmount = totalAssets.multiply(ZAKAH_RATE);
+            List<ZakahStatus> statuses = Arrays.asList(
+                    ZakahStatus.ELIGABLE_FOR_ZAKAH,
+                    ZakahStatus.LAST_RECORD_DUE_AND_NEW_HAWL_BEGIN
+            );
             Optional<ZakahIndividualRecord> lastRecordOpt =
-                    repository.findTopByUserIdOrderByCreatedAtDesc(userId);
+                    repository.findTopByUserIdAndStatusInOrderByCreatedAtDesc(userId,statuses);
 
             if (lastRecordOpt.isPresent()) {
                 ZakahIndividualRecord lastRecord = lastRecordOpt.get();
@@ -95,6 +100,7 @@ public class ZakahIndividualRecordServiceImpl implements ZakahIndividualRecordSe
         ZakahIndividualRecord record = mapper.toEntity(request, user);
         record.setZakahAmount(zakahAmount);
         record.setStatus(status);
+        record.setTotalAssets(totalAssets);
 
         ZakahIndividualRecord saved = repository.save(record);
         log.info("Zakah calculation completed successfully for user: {}", userId);
