@@ -1,6 +1,7 @@
 package ntg.project.ZakahCalculator.repository;
 
 import ntg.project.ZakahCalculator.entity.ZakahIndividualRecord;
+import ntg.project.ZakahCalculator.entity.util.ZakahStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -19,4 +20,5 @@ public interface ZakahIndividualRecordRepository extends JpaRepository<ZakahIndi
 
     // Get the latest individual zakah record by user id
     Optional<ZakahIndividualRecord> findTopByUserIdOrderByCreatedAtDesc(Long userId);
+    Optional<ZakahIndividualRecord> findTopByUserIdAndStatusInOrderByCreatedAtDesc(Long userId,List<ZakahStatus> statuses);
 }

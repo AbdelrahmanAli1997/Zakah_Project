@@ -7,4 +7,3 @@ public enum ZakahStatus {
     ZAKAH_DUE,
     LAST_RECORD_DUE_AND_NEW_HAWL_BEGIN,
 }
-
