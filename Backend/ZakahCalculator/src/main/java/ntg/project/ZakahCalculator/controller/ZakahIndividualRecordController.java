@@ -29,7 +29,7 @@ public class ZakahIndividualRecordController {
     }
 
     // Get all individual zakah record summaries
-    @GetMapping("/all/summaries")
+    @GetMapping("/summaries")
     public ResponseEntity<List<ZakahIndividualRecordSummaryResponse>> getAllZakahRecordSummaries() {
         List<ZakahIndividualRecordSummaryResponse> responses = zakahIndividualRecordService.findAllSummariesByUserId();
         return ResponseEntity.ok(responses);

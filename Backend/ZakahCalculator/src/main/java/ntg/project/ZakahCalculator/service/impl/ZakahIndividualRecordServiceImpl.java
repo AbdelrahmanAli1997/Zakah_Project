@@ -47,8 +47,6 @@ public class ZakahIndividualRecordServiceImpl implements ZakahIndividualRecordSe
     public ZakahIndividualRecordSummaryResponse save(ZakahIndividualRecordRequest request) {
         log.info("Starting individual zakah calculation");
 
-        validateRequest(request);
-
         Long userId = userUtil.getAuthenticatedUserId();
         LocalDate calculationDate = request.getCalculationDate();
         BigDecimal goldPrice = request.getGoldPrice();
@@ -74,7 +72,7 @@ public class ZakahIndividualRecordServiceImpl implements ZakahIndividualRecordSe
                     ZakahStatus.LAST_RECORD_DUE_AND_NEW_HAWL_BEGIN
             );
             Optional<ZakahIndividualRecord> lastRecordOpt =
-                    repository.findTopByUserIdAndStatusInOrderByCreatedAtDesc(userId,statuses);
+                    repository.findTopByUserIdAndStatusInOrderByCalculationDateDesc(userId,statuses);
 
             if (lastRecordOpt.isPresent()) {
                 ZakahIndividualRecord lastRecord = lastRecordOpt.get();
@@ -123,7 +121,7 @@ public class ZakahIndividualRecordServiceImpl implements ZakahIndividualRecordSe
     @Override
     public List<ZakahIndividualRecordSummaryResponse> findAllSummariesByUserId() {
         Long userId = userUtil.getAuthenticatedUserId();
-        return repository.findAllByUserId(userId)
+        return repository.findAllByUser_IdOrderByCalculationDateDescCreatedAtDesc(userId)
                 .stream()
                 .map(mapper::toSummaryResponse)
                 .collect(Collectors.toList());
@@ -133,7 +131,7 @@ public class ZakahIndividualRecordServiceImpl implements ZakahIndividualRecordSe
     public ZakahIndividualRecordResponse findLatestByUserId() {
         Long userId = userUtil.getAuthenticatedUserId();
         ZakahIndividualRecord latestRecord = repository
-                .findTopByUserIdOrderByCreatedAtDesc(userId)
+                .findTopByUserIdOrderByCalculationDateDesc(userId)
                 .orElseThrow(() -> new BusinessException(
                         ZAKAH_RECORD_NOT_FOUND,
                         "No individual zakah records found for user"
@@ -145,7 +143,7 @@ public class ZakahIndividualRecordServiceImpl implements ZakahIndividualRecordSe
     public ZakahIndividualRecordSummaryResponse findLatestSummaryByUserId() {
         Long userId = userUtil.getAuthenticatedUserId();
         ZakahIndividualRecord latestRecord = repository
-                .findTopByUserIdOrderByCreatedAtDesc(userId)
+                .findTopByUserIdOrderByCalculationDateDesc(userId)
                 .orElseThrow(() -> new BusinessException(
                         ZAKAH_RECORD_NOT_FOUND,
                         "No individual zakah records found for user"
@@ -177,12 +175,6 @@ public class ZakahIndividualRecordServiceImpl implements ZakahIndividualRecordSe
         return total;
     }
 
-    private void validateRequest(ZakahIndividualRecordRequest request) {
-        if (request == null) throw new BusinessException(INVALID_ZAKAH_DATA);
-        if (request.getGoldPrice() == null || request.getGoldPrice().compareTo(BigDecimal.ZERO) <= 0)
-            throw new BusinessException(GOLD_PRICE_INVALID);
-        if (request.getCalculationDate() == null) throw new BusinessException(INVALID_ZAKAH_DATA, "Calculation date required");
-    }
 
     private void validateCalculationDate(LocalDate date) {
         if (date.isAfter(LocalDate.now())) throw new BusinessException(INVALID_BALANCE_SHEET_DATE);

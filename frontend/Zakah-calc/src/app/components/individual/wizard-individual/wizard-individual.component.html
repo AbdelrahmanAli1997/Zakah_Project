@@ -1,36 +1,30 @@
 <div class="flex flex-col items-center justify-start p-4 pt-10 sm:pt-16">
   <div class="w-full max-w-2xl">
-
-    <!-- Steps Header -->
+    <!-- Stepper -->
     <div class="mb-8">
       <div class="flex items-center">
-        @for (step of steps(); let i = $index; track $index) {
+        @for (step of steps(); track step; let i = $index) {
         <div class="flex items-center text-emerald-600 relative">
           <div
             class="rounded-full transition duration-500 ease-in-out h-12 w-12 flex items-center justify-center border-2"
-            [class.bg-emerald-600]="i <= currentStep()"
-            [class.text-white]="i <= currentStep()"
-            [class.border-emerald-600]="i <= currentStep()"
-            [class.border-slate-300]="i > currentStep()"
+            [class.bg-emerald-600]="i <= currentStep()" [class.text-white]="i <= currentStep()"
+            [class.border-emerald-600]="i <= currentStep()" [class.border-slate-300]="i > currentStep()"
             [class.text-slate-500]="i > currentStep()">
-            @if (i < currentStep()) {
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            } @else {
-            <span>{{ i + 1 }}</span>
-            }
+            @if (i < currentStep()) { <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+              } @else {
+              <span>{{ i + 1 }}</span>
+              }
           </div>
           <div class="absolute top-0 -ms-10 text-center mt-16 w-32 text-xs font-medium uppercase"
-               [class.text-emerald-600]="i <= currentStep()"
-               [class.text-slate-400]="i > currentStep()">
+            [class.text-emerald-600]="i <= currentStep()" [class.text-slate-400]="i > currentStep()">
             {{ step }}
           </div>
         </div>
         @if (!$last) {
         <div class="flex-auto border-t-2 transition duration-500 ease-in-out"
-             [class.border-emerald-600]="i < currentStep()"
-             [class.border-slate-300]="i >= currentStep()">
+          [class.border-emerald-600]="i < currentStep()" [class.border-slate-300]="i >= currentStep()">
         </div>
         }
         }
@@ -40,346 +34,228 @@
     <!-- Step Content -->
     <div class="bg-white rounded-xl shadow-lg p-6 sm:p-8 animate-slide-in-right">
       @switch (steps()[currentStep()]) {
-
       @case ('البداية') {
-      <h2 class="text-2xl font-bold text-slate-800 mb-2">حساب زكاة الفرد</h2>
-      <p class="text-slate-500 mb-6">أدخل بيانات أموالك الشخصية لمعرفة مقدار الزكاة المستحقة</p>
-      <button
-        class="px-8 py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
-        (click)="next()">
-        ابدأ حساب الزكاة
-      </button>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 mx-auto">
+        <button (click)="next()"
+          class="group border-2 border-slate-200 rounded-lg p-6 text-center transition-all duration-300 hover:border-emerald-500 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-400">
+          <div
+            class="shrink-0 w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto transition-all duration-300 group-hover:scale-110">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800 mt-4">ابدأ الان</h3>
+          <p class="text-slate-500 text-sm mt-1">أدخل بياناتك المالية خطوة بخطوة</p>
+        </button>
+      </div>
+      <div class="flex justify-between mt-8">
+        <button (click)="back()"
+          class="px-6 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-300 transition-colors">
+          رجوع
+        </button>
+        <button (click)="next()"
+          class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
+          التالي
+        </button>
+      </div>
       }
-
       @case ('الأصول') {
-      <h2 class="text-2xl font-bold text-slate-800 mb-6">أصولك الشخصية</h2>
       <div class="space-y-4">
-        <!-- النقد والأرصدة البنكية -->
         <div class="form-group">
-          <label for="cash" class="flex items-center gap-2 font-semibold text-slate-700 mb-2">
-            النقد والأرصدة البنكية
-            <app-tooltip text="جميع النقود المتوفرة لديك في المنزل والحسابات البنكية."></app-tooltip>
-          </label>
-          <input
-            type="number"
-            name="cash"
-            [value]="formData().cash"
-            (input)="onInputChange($event)"
-            (blur)="onInputBlur($event)"
-            class="w-full p-3 bg-white border rounded-lg transition-all focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            [class.border-slate-300]="!getFieldError('cash')"
-            [class.border-red-500]="getFieldError('cash')"
-            [class.focus:border-red-500]="getFieldError('cash')"
-            [class.focus:ring-red-500]="getFieldError('cash')"
-            placeholder="0.00"
-            min="0"
-            step="0.01">
-          @if (getFieldError('cash')) {
-          <div class="mt-1 text-sm text-red-600 animate-pulse">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{{ getFieldError('cash') }}</span>
-          </div>
+          <label for="cash" class="flex items-center gap-2 font-semibold text-slate-700 mb-2"> النقد و مشتملاته (Cash
+            Equivalents)
+            <app-tooltip text="يشمل النقد في الصندوق والحسابات البنكية."></app-tooltip></label>
+          <input type="number" name="cash" [value]="formData().cash" (input)="onInputChange($event)"
+            class="w-full p-3 bg-white border border-slate-300 rounded-lg" placeholder="0.00">
+          @if (fieldErrors().cash) {
+          <p class="text-sm text-red-600 mt-1 bg-red-50 p-2 rounded-lg">{{ fieldErrors().cash }}</p>
           }
         </div>
-
-        <!-- الذهب -->
         <div class="form-group">
-          <label for="gold" class="flex items-center gap-2 font-semibold text-slate-700 mb-2">
-            قيمة الذهب المملوكة بالجنيهات
-            <app-tooltip text="قيمة الذهب المملوكة بالجنيهات"></app-tooltip>
-          </label>
-          <input
-            type="number"
-            name="gold"
-            [value]="formData().gold"
-            (input)="onInputChange($event)"
-            (blur)="onInputBlur($event)"
-            class="w-full p-3 bg-white border rounded-lg transition-all focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            [class.border-slate-300]="!getFieldError('gold')"
-            [class.border-red-500]="getFieldError('gold')"
-            [class.focus:border-red-500]="getFieldError('gold')"
-            [class.focus:ring-red-500]="getFieldError('gold')"
-            placeholder="0.00"
-            min="0"
-            step="0.01">
-          @if (getFieldError('gold')) {
-          <div class="mt-1 text-sm text-red-600 animate-pulse">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{{ getFieldError('gold') }}</span>
-          </div>
+          <label for="stocks" class="flex items-center gap-2 font-semibold text-slate-700 mb-2">الأسهم (Stocks)
+            <app-tooltip
+              text="القيمة السوقية للأسهم المحتفظ بها للمتاجرة أو لتحقيق مكاسب رأسمالية."></app-tooltip></label>
+          <input type="number" name="stocks" [value]="formData().stocks" (input)="onInputChange($event)"
+            class="w-full p-3 bg-white border border-slate-300 rounded-lg" placeholder="0.00">
+          @if (fieldErrors().stocks) {
+          <p class="text-sm text-red-600 mt-1 bg-red-50 p-2 rounded-lg">{{ fieldErrors().stocks }}</p>
           }
         </div>
-
-        <!-- الفضة -->
         <div class="form-group">
-          <label for="silver" class="flex items-center gap-2 font-semibold text-slate-700 mb-2">
-            قيمة الفضة المملوكة بالجنيهات
-            <app-tooltip text="قيمة الفضة المملوكة بالجنيهات"></app-tooltip>
-          </label>
-          <input
-            type="number"
-            name="silver"
-            [value]="formData().silver"
-            (input)="onInputChange($event)"
-            (blur)="onInputBlur($event)"
-            class="w-full p-3 bg-white border rounded-lg transition-all focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            [class.border-slate-300]="!getFieldError('silver')"
-            [class.border-red-500]="getFieldError('silver')"
-            [class.focus:border-red-500]="getFieldError('silver')"
-            [class.focus:ring-red-500]="getFieldError('silver')"
-            placeholder="0.00"
-            min="0"
-            step="0.01">
-          @if (getFieldError('silver')) {
-          <div class="mt-1 text-sm text-red-600 animate-pulse">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{{ getFieldError('silver') }}</span>
-          </div>
+          <label for="gold" class="flex items-center gap-2 font-semibold text-slate-700 mb-2"> قيمة الذهب المملوكة
+            <app-tooltip
+              text="القيمة السوقية للأسهم المحتفظ بها للمتاجرة أو لتحقيق مكاسب رأسمالية."></app-tooltip></label>
+          <input type="number" name="gold" [value]="formData().gold" (input)="onInputChange($event)"
+            class="w-full p-3 bg-white border border-slate-300 rounded-lg" placeholder="0.00">
+          @if (fieldErrors().gold) {
+          <p class="text-sm text-red-600 mt-1 bg-red-50 p-2 rounded-lg">{{ fieldErrors().gold }}</p>
           }
         </div>
-
-        <!-- السندات -->
         <div class="form-group">
-          <label for="bonds" class="flex items-center gap-2 font-semibold text-slate-700 mb-2">
-            السندات والصكوك
-            <app-tooltip text="قيمة السندات والصكوك الاستثمارية التي تملكها."></app-tooltip>
-          </label>
-          <input
-            type="number"
-            name="bonds"
-            [value]="formData().bonds"
-            (input)="onInputChange($event)"
-            (blur)="onInputBlur($event)"
-            class="w-full p-3 bg-white border rounded-lg transition-all focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            [class.border-slate-300]="!getFieldError('bonds')"
-            [class.border-red-500]="getFieldError('bonds')"
-            [class.focus:border-red-500]="getFieldError('bonds')"
-            [class.focus:ring-red-500]="getFieldError('bonds')"
-            placeholder="0.00"
-            min="0"
-            step="0.01">
-          @if (getFieldError('bonds')) {
-          <div class="mt-1 text-sm text-red-600 animate-pulse">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{{ getFieldError('bonds') }}</span>
-          </div>
+          <label for="silver" class="flex items-center gap-2 font-semibold text-slate-700 mb-2">قيمة الفضىة المملوكة
+            <app-tooltip text="قيمة البضائع المتاحة للبيع بسعر التكلفة أو سعر السوق."></app-tooltip></label>
+          <input type="number" name="silver" [value]="formData().silver" (input)="onInputChange($event)"
+            class="w-full p-3 bg-white border border-slate-300 rounded-lg" placeholder="0.00">
+          @if (fieldErrors().silver) {
+          <p class="text-sm text-red-600 mt-1 bg-red-50 p-2 rounded-lg">{{ fieldErrors().silver }}</p>
           }
         </div>
-
-        <!-- الأسهم -->
         <div class="form-group">
-          <label for="stocks" class="flex items-center gap-2 font-semibold text-slate-700 mb-2">
-            الأسهم والاستثمارات
-            <app-tooltip text="القيمة السوقية للأسهم والاستثمارات المملوكة."></app-tooltip>
-          </label>
-          <input
-            type="number"
-            name="stocks"
-            [value]="formData().stocks"
-            (input)="onInputChange($event)"
-            (blur)="onInputBlur($event)"
-            class="w-full p-3 bg-white border rounded-lg transition-all focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            [class.border-slate-300]="!getFieldError('stocks')"
-            [class.border-red-500]="getFieldError('stocks')"
-            [class.focus:border-red-500]="getFieldError('stocks')"
-            [class.focus:ring-red-500]="getFieldError('stocks')"
-            placeholder="0.00"
-            min="0"
-            step="0.01">
-          @if (getFieldError('stocks')) {
-          <div class="mt-1 text-sm text-red-600 animate-pulse">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{{ getFieldError('stocks') }}</span>
-          </div>
+          <label for="bonds" class="flex items-center gap-2 font-semibold text-slate-700 mb-2">الشهادات و
+            الاستثمارات الاخرى<app-tooltip
+              text="الأموال المستحقة لشركتك أو لك والتي من المرجح تحصيلها."></app-tooltip></label>
+          <input type="number" name="bonds" [value]="formData().bonds" (input)="onInputChange($event)"
+            class="w-full p-3 bg-white border border-slate-300 rounded-lg" placeholder="0.00">
+          @if (fieldErrors().bonds) {
+          <p class="text-sm text-red-600 mt-1 bg-red-50 p-2 rounded-lg">{{ fieldErrors().bonds }}</p>
           }
         </div>
       </div>
+      <div class="flex justify-between mt-8">
+        <button (click)="back()"
+          class="px-6 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-300 transition-colors">
+          رجوع
+        </button>
+        <button (click)="next()"
+          class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
+          التالي
+        </button>
+      </div>
       }
-
       @case ('التفاصيل') {
       <h2 class="text-2xl font-bold text-slate-800 mb-2">تفاصيل الحساب</h2>
-      <p class="text-slate-500 mb-6">يرجى إدخال سعر الذهب وتاريخ حساب الزكاة</p>
-
+      <p class="text-slate-500 mb-6">يرجى تقديم التاريخ الذي تحسب زكاتك عنه. غالبًا ما يكون هذا هو نهاية سنتك المالية.
+      </p>
       <div class="mb-6">
-        <label for="calculationDate" class="font-semibold text-slate-700 mb-2 block">
-          تاريخ حساب الزكاة
-          <span class="text-sm text-slate-500 font-normal">(اختر التاريخ المطلوب حساب الزكاة عنه)</span>
-        </label>
-        <input
-          type="date"
-          id="calculationDate"
-          name="calculationDate"
-          [value]="getDisplayDate()"
-          (change)="onDateChange($event)"
-          class="w-full p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+        <label for="balance-date" class="flex items-center gap-2 font-semibold text-slate-700 mb-2">تاريخ الميزانية
+          العمومية</label>
+        <input id="balanceSheetDate" type="date"
+          class="mt-1 block p-2 w-full rounded-md border-slate-300 shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-500 focus:ring-opacity-50 sm:text-sm bg-white border"
+          [value]="getDisplayDate()" (input)="onDateChange($event)" />
+        @if (fieldErrors().calculationDate) {
+        <p class="text-sm text-red-600 mt-1 bg-red-50 p-2 rounded-lg">{{ fieldErrors().calculationDate }}</p>
+        }
       </div>
-
-      <h2 class="text-2xl font-bold text-slate-800 mb-6">سعر الذهب</h2>
+      <h2 class="text-2xl font-bold text-slate-800 mb-6">سعر الذهب اليومي</h2>
+      <p class="text-slate-500 mb-4">يرجى إدخال سعر الذهب الحالي حيث أن تحديد الزكاة يعتمد على سعر 85 جرام ذهب</p>
       <div class="space-y-6">
         <div class="form-group">
           <label for="goldPrice" class="flex items-center gap-2 font-semibold text-slate-700 mb-2">
             سعر الذهب الحالي للجرام (عيار 21)
-            <app-tooltip text="سعر جرام الذهب عيار 21 بالعملة المحلية."></app-tooltip>
+            <app-tooltip text="أدخل السعر الحالي للذهب عيار 21 بالجنيه المصري للجرام الواحد."></app-tooltip>
           </label>
-          <input
-            type="number"
-            name="goldPrice"
-            [value]="formData().goldPrice"
-            (input)="onInputChange($event)"
-            (blur)="onInputBlur($event)"
-            class="w-full p-3 bg-white border rounded-lg transition-all focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            [class.border-slate-300]="!getFieldError('goldPrice')"
-            [class.border-red-500]="getFieldError('goldPrice')"
-            [class.focus:border-red-500]="getFieldError('goldPrice')"
-            [class.focus:ring-red-500]="getFieldError('goldPrice')"
-            placeholder="75.21"
-            min="0"
-            step="0.01">
-          @if (getFieldError('goldPrice')) {
-          <div class="mt-1 text-sm text-red-600 animate-pulse">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{{ getFieldError('goldPrice') }}</span>
-          </div>
+          <input type="number" name="goldPrice" [value]="formData().goldPrice" (input)="onInputChange($event)"
+            class="w-full p-3 bg-white border border-slate-300 rounded-lg" placeholder="75.21">
+          @if (fieldErrors().goldPrice) {
+          <p class="text-sm text-red-600 mt-1 bg-red-50 p-2 rounded-lg">{{ fieldErrors().goldPrice }}</p>
           }
         </div>
       </div>
-      }
-
-      @case ('مراجعة') {
-      <h2 class="text-2xl font-bold text-slate-800 mb-6">مراجعة حسابك</h2>
-
-      <!-- رسالة الخطأ إذا كان هناك أخطاء -->
-      @if (hasErrors()) {
-      <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg animate-pulse">
-        <div class="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p class="text-sm text-red-600">
-            يوجد أخطاء في البيانات. يرجى تصحيحها قبل حساب الزكاة.
-          </p>
-        </div>
+      <div class="flex justify-between mt-8">
+        <button (click)="back()"
+          class="px-6 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-300 transition-colors">
+          رجوع
+        </button>
+        <button (click)="next()"
+          class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
+          التالي
+        </button>
       </div>
       }
-
+      @case ('مراجعة') {
+      <h2 class="text-2xl font-bold text-slate-800 mb-6">مراجعة حسابك</h2>
       <div class="space-y-4 rounded-lg border border-slate-200 p-4 mb-6">
         <h3 class="font-bold text-lg text-blue-700 border-b pb-2 mb-2">معلومات أساسية</h3>
         <div class="flow-root">
           <dl class="-my-3 divide-y divide-slate-100 text-sm">
+            @if (formData().calculationDate) {
             <div class="grid grid-cols-2 gap-1 py-3">
-              <dt class="text-slate-600">تاريخ حساب الزكاة</dt>
-              <dd class="text-end font-medium text-slate-800">{{ formatDateForDisplay(formData().calculationDate) }}</dd>
+              <dt class="text-slate-600">تاريخ الميزانية العمومية</dt>
+              <dd class="text-end font-medium text-slate-800">{{ formatDateForDisplay(formData().calculationDate) }}
+              </dd>
             </div>
+            }
+            @if (formData().goldPrice > 0) {
             <div class="grid grid-cols-2 gap-1 py-3">
-              <dt class="text-slate-600">سعر الذهب للجرام (عيار 21)</dt>
+              <dt class="text-slate-600">سعر الذهب الحالي للجرام (عيار 21)</dt>
               <dd class="text-end font-medium text-slate-800">{{ formData().goldPrice | currency:'EGP' }}</dd>
             </div>
+            }
           </dl>
         </div>
       </div>
 
       <div class="space-y-4 rounded-lg border border-slate-200 p-4">
-        <h3 class="font-bold text-lg text-emerald-700 border-b pb-2 mb-2">الأصول الشخصية</h3>
+        <h3 class="font-bold text-lg text-emerald-700 border-b pb-2 mb-2">الأصول</h3>
         <div class="flow-root">
           <dl class="-my-3 divide-y divide-slate-100 text-sm">
             @if (formData().cash > 0) {
             <div class="grid grid-cols-2 gap-1 py-3">
-              <dt class="text-slate-600">النقد والأرصدة البنكية</dt>
+              <dt class="text-slate-600">النقد ومشتملاته (Cash Equivalents)</dt>
               <dd class="text-end font-medium text-slate-800">{{ formData().cash | currency:'EGP' }}</dd>
             </div>
             }
-            @if (formData().gold > 0) {
+            @if (formData().stocks) {
             <div class="grid grid-cols-2 gap-1 py-3">
-              <dt class="text-slate-600">قيمة الذهب المملوكة بالجنيهات</dt>
+              <dt class="text-slate-600">الاسهم (Stocks)</dt>
+              <dd class="text-end font-medium text-slate-800">{{ formData().stocks | currency:'EGP' }}</dd>
+            </div>
+            }
+            @if (formData().gold) {
+            <div class="grid grid-cols-2 gap-1 py-3">
+              <dt class="text-slate-600">قيمة الذهب المملوكة</dt>
               <dd class="text-end font-medium text-slate-800">{{ formData().gold | currency:'EGP' }}</dd>
             </div>
             }
             @if (formData().silver > 0) {
             <div class="grid grid-cols-2 gap-1 py-3">
-              <dt class="text-slate-600">قيمة الفضة المملوكة بالجنيهات</dt>
+              <dt class="text-slate-600">قيمة الفضة المملوكة</dt>
               <dd class="text-end font-medium text-slate-800">{{ formData().silver | currency:'EGP' }}</dd>
             </div>
             }
             @if (formData().bonds > 0) {
             <div class="grid grid-cols-2 gap-1 py-3">
-              <dt class="text-slate-600">السندات والصكوك</dt>
+              <dt class="text-slate-600">الشهادات والاستثمارات الأخرى</dt>
               <dd class="text-end font-medium text-slate-800">{{ formData().bonds | currency:'EGP' }}</dd>
-            </div>
-            }
-            @if (formData().stocks > 0) {
-            <div class="grid grid-cols-2 gap-1 py-3">
-              <dt class="text-slate-600">الأسهم والاستثمارات</dt>
-              <dd class="text-end font-medium text-slate-800">{{ formData().stocks | currency:'EGP' }}</dd>
             </div>
             }
           </dl>
         </div>
       </div>
 
-      <!-- نتيجة حساب الزكاة (ستظهر بعد الحساب) -->
-      @if (zakahResult()) {
-      <div class="mt-6 p-6 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-lg border border-emerald-700 shadow-lg">
-        <h3 class="font-bold text-lg text-white mb-4">نتيجة حساب الزكاة</h3>
-        <div class="flex justify-between items-center">
-          <div>
-            <p class="text-emerald-100 text-lg">قيمة الزكاة الواجبة (2.5%)</p>
-            <p class="text-emerald-50 text-sm mt-1">زكاة الأموال الشخصية</p>
-          </div>
-          <span class="text-4xl font-bold text-white">{{ zakahResult()?.zakahAmount | currency:'EGP' }}</span>
-        </div>
+      @if (errorMessage()) {
+      <div class="mb-6 p-4 bg-red-50 border-r-4 border-red-500 rounded flex items-center gap-3 transition-all">
+        <svg class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-red-700 font-medium">{{ errorMessage() }}</span>
+      </div>
+      }
+      <div class="flex justify-between mt-8">
+        <button (click)="back()"
+          class="px-6 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-300 transition-colors">
+          رجوع
+        </button>
+        <button (click)="calculate()" [disabled]="isCalculating()"
+          class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center w-45 disabled:opacity-75 disabled:cursor-not-allowed">
+          @if (isCalculating()) {
+          <svg class="animate-spin -ms-1 me-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+            viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
+          <span>جاري الحساب...</span>
+          } @else {
+          <span>احسب الزكاة</span>
+          }
+        </button>
       </div>
       }
       }
-      }
-    </div>
-
-    <!-- Navigation -->
-    @if (currentStep() > 0) {
-    <div class="flex justify-between mt-8">
-      <button
-        (click)="back()"
-        class="px-6 py-2 bg-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-300 transition-colors">
-        رجوع
-      </button>
-
-      @if (currentStep() < steps().length - 1) {
-      <button
-        (click)="next()"
-        [disabled]="!canProceed()"
-        [class.opacity-50]="!canProceed()"
-        [class.cursor-not-allowed]="!canProceed()"
-        class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors">
-        التالي
-      </button>
-      } @else {
-      <button
-        (click)="calculate()"
-        [disabled]="isCalculating() || hasErrors()"
-        class="px-6 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center w-[180px] disabled:opacity-75 disabled:cursor-not-allowed">
-        @if (isCalculating()) {
-        <svg class="animate-spin -ms-1 me-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <span>جاري الحساب...</span>
-        } @else {
-        <span>احسب الزكاة</span>
-        }
-      </button>
-      }
-    </div>
-    }
   </div>
 </div>

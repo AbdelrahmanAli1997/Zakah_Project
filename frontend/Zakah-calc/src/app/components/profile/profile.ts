@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, output, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -19,18 +19,21 @@ import {Router} from '@angular/router';
   styleUrl: './profile.css'
 })
 export class Profile implements OnInit {
-
+  
   private fb = inject(FormBuilder);
   private userService = inject(UserService);
   private router = inject(Router);
-
+  save = output<void>();
+  cancel = output<void>();
+  deleteAccount = output<void>();
+  
   /* ================= FORMS ================= */
-
+  
   infoForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
     email: [{ value: '', disabled: true }]
   });
-
+  
   passwordForm: FormGroup = this.fb.group({
     currentPassword: ['', Validators.required],
     newPassword: ['', [Validators.required, Validators.minLength(3)]],
@@ -152,7 +155,27 @@ export class Profile implements OnInit {
     if (!confirm('هل أنت متأكد من حذف الحساب؟')) return;
 
     this.userService.deleteAccount().subscribe(() => {
-     this.router.navigate(['/login'])
-    });
+      confirm('تم حذف الحساب. سيتم توجيهك إلى صفحة استعادة الحساب.') ;
+      this.deleteAccount.emit();
+      AuthStorageService.clear();
+       this.router.navigate(['/login']);  ;
+      
+    } );
   }
-}
+
+
+  // onSave() {
+  //   // Mock implementation
+  //   console.log('Profile changes saved!');
+  //   this.save.emit();
+  // }
+
+  // onCancel() {
+  //   this.cancel.emit();
+  // }
+
+  // onDeleteAccount() {
+  //   this.deleteAccount.emit();
+  // }
+ 
+  }

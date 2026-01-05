@@ -4,7 +4,7 @@ import { CurrencyPipe } from '@angular/common';
 import { ZakahCompanyRecordSummaryResponse } from '../../../models/response/ZakahCompanyResponse';
 import { Router } from '@angular/router';
 
-@Component({
+@Component({ 
   selector: 'app-after-calc',
   imports:[CurrencyPipe],
   templateUrl: './after-calc.component.html',

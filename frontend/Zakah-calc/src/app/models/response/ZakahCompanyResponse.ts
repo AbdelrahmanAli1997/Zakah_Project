@@ -23,7 +23,7 @@ export interface ZakahCompanyRecordResponse {
   // Calculations
   totalAssets: number;
   totalLiabilities: number;
-  currentZakahPool: number;
+  zakahPool: number;
   zakahAmount: number;
   nisabAmount: number;
 

@@ -74,6 +74,7 @@ export class RegisterComponent implements OnInit {
 
   onSubmit() {
     if (!this.isFormValid() || this.isLoading()) {
+      
       this.registerForm.markAllAsTouched();
       return;
     }
@@ -95,10 +96,12 @@ export class RegisterComponent implements OnInit {
 
     this.authService.register(request).subscribe({
       next: () => {
+        console.log('Form is valid, registration successful');
         const encryptedEmail = CryptoJS.AES.encrypt(request.email, this.secretKey).toString();
         this.router.navigate(['/verify-otp'], { queryParams: { email: encryptedEmail } });
       },
       error: (err) => {
+        console.log('Form is invalid, registration failed');
         alert('فشل إنشاء الحساب');
         console.error('Register failed', err);
         this.isLoading.set(false);

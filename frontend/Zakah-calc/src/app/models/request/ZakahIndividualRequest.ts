@@ -5,5 +5,6 @@ export interface ZakahIndividualRecordRequest {
   bonds: number;
   stocks: number;
   goldPrice: number;
-  calculationDate: string; // LocalDate -> string (ISO)
-}
+  calculationDate: string;}
+
+

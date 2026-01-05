@@ -63,9 +63,6 @@ public class ZakahCompanyRecordMapper {
                 .yearlyLongTermLiabilities(entity.getYearlyLongTermLiabilities())
                 .goldPrice(entity.getGoldPrice())
                 .balanceSheetDate(entity.getBalanceSheetDate())
-/*                .totalAssets(entity.getCashEquivalents().add(entity.getAccountsReceivable().add(entity.getInventory()).add(entity.getInvestment())))
-                .totalLiabilities(entity.getAccountsPayable().add(entity.getAccountsPayable()).add(entity.getShortTermLiability()).add(entity.getAccruedExpenses()))
-                */
                 .totalAssets(entity.getTotalAssets())
                 .totalLiabilities(entity.getTotalLiabilities())
                 .zakahPool(entity.getZakahPool())

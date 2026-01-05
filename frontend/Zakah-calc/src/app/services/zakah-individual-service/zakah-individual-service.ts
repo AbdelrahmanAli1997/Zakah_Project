@@ -1,12 +1,14 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
   ZakahIndividualRecordResponse,
   ZakahIndividualRecordSummaryResponse
 } from '../../models/response/ZakahIndividualResponse';
-import {ZakahIndividualRecordRequest} from '../../models/request/ZakahIndividualRequest';
+import { ZakahIndividualRecordRequest } from '../../models/request/ZakahIndividualRequest';
+import { ZakahCompanyRecordRequest } from '../../models/request/ZakahCompanyRequest';
 
 
 @Injectable({
@@ -16,45 +18,106 @@ export class ZakahIndividualRecordService {
 
   private readonly BASE_URL = `${environment.apiUrl}/zakah/individual`;
 
+
+  formData = signal<ZakahIndividualRecordRequest>(this.getInitialFormData());
   latestResult = signal<ZakahIndividualRecordResponse | null>(null);
-  history = signal<ZakahIndividualRecordSummaryResponse[]>([]);
+  history = signal<ZakahIndividualRecordResponse[]>([]);
+  currentWizardStep = signal<number>(0);
+  wizardSteps = signal<string[]>(['البداية', 'الأصول', 'التفاصيل', 'مراجعة']);
+  isCalculating = signal<boolean>(false);
 
+  constructor(private http: HttpClient) { }
 
-  constructor(private http: HttpClient) {}
-
-  /* ================= GET ================= */
-
-  // GET /zakah/individual/{id}
-  getById(id: number): Observable<ZakahIndividualRecordResponse> {
-    return this.http.get<ZakahIndividualRecordResponse>(
-      `${this.BASE_URL}/${id}`
-    );
+  resetForm(): void {
+    this.formData.set(this.getInitialFormData());
+    this.currentWizardStep.set(0);
   }
 
-  // GET /zakah/individual/all/summaries
-  getAllSummaries(): Observable<ZakahIndividualRecordSummaryResponse[]> {
-    return this.http.get<ZakahIndividualRecordSummaryResponse[]>(
-      `${this.BASE_URL}/all/summaries`
-    );
+
+
+  calculate(): Observable<ZakahIndividualRecordResponse> {
+    const data = this.formData();
+
+    const request: ZakahIndividualRecordRequest = {
+      calculationDate: data.calculationDate,
+
+      cash: Number(data.cash),
+      gold: Number(data.gold),
+      silver: Number(data.silver),
+      stocks: Number(data.stocks),
+      bonds: Number(data.bonds),
+      goldPrice: Number(data.goldPrice)
+    };
+
+    console.log('REQUEST SENT TO BACKEND:', request);
+
+    return this.http
+      .post<ZakahIndividualRecordResponse>(`${this.BASE_URL}/calculate`, request)
+      .pipe(
+        tap(response => {
+          this.latestResult.set(response);
+          this.history.update(h => [response, ...h]);
+          this.resetForm();
+        })
+      );
   }
 
-  /* ================= POST ================= */
 
-  // POST /zakah/individual/calculate
-  calculateAndSave(
-     request: ZakahIndividualRecordRequest
-   ): Observable<ZakahIndividualRecordResponse> {
-     return this.http.post<ZakahIndividualRecordResponse>(
-       `${this.BASE_URL}/calculate`,
-       request
-     );
-   }
-  /* ================= DELETE ================= */
 
-  // DELETE /zakah/individual/{id}
-  deleteById(id: number): Observable<void> {
-    return this.http.delete<void>(
-      `${this.BASE_URL}/${id}`
-    );
+  private getInitialFormData(): ZakahIndividualRecordRequest {
+    return {
+      calculationDate: new Date().toISOString().split('T')[0],
+      cash: 0,
+      gold: 0,
+      silver: 0,
+      bonds: 0,
+      stocks: 0,
+      goldPrice: 0
+
+    };
   }
+
+
+  updateFormData(patch: Partial<ZakahIndividualRecordRequest>): void {
+    this.formData.update(current => ({ ...current, ...patch }));
+  }
+
+  nextStep(): void {
+    if (this.currentWizardStep() < this.wizardSteps().length - 1) {
+      this.currentWizardStep.update(s => s + 1);
+    }
+  }
+
+  prevStep(): void {
+    if (this.currentWizardStep() > 0) {
+      this.currentWizardStep.update(s => s - 1);
+    }
+  }
+
+  goToStep(stepIndex: number): void {
+    if (stepIndex >= 0 && stepIndex < this.wizardSteps().length) {
+      this.currentWizardStep.set(stepIndex);
+    }
+  }
+  getAllSummaries(): Observable<ZakahIndividualRecordResponse[]> {
+    return this.http.get<ZakahIndividualRecordResponse[]>(`${this.BASE_URL}/summaries`);
+  }
+
+  loadById(id: number): Observable<ZakahIndividualRecordResponse> {
+    return this.http.get<ZakahIndividualRecordResponse>(`${this.BASE_URL}/${id}`);
+  }
+
+  loadfullrecord(id: number): Observable<ZakahIndividualRecordResponse> {
+    return this.http.get<ZakahIndividualRecordResponse>(`${this.BASE_URL}/${id}`);
+  }
+
+
+  // calculateAndSave(request: ZakahIndividualRecordRequest): Observable<ZakahIndividualRecordResponse> {
+  //   return this.http.post<ZakahIndividualRecordResponse>(`${this.BASE_URL}/calculate`, request);
+  // }
+
+  deleteRecord(id: number) {
+    return this.http.delete(`${this.BASE_URL}/${id}`);
+  }
+
 }

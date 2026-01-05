@@ -2,6 +2,7 @@ import {Component, DoCheck, inject, signal} from '@angular/core';
 import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
 import {Navbar} from "./shared/navbar/navbar";
 import {AuthService} from './services/auth-service/auth.service';
+import { initFlowbite } from 'flowbite';
 
 @Component({
   selector: 'app-root',
@@ -19,14 +20,11 @@ export class App implements DoCheck{
 
 
  ngDoCheck(): void {
-    this.islogin = this.authState.isLoggedIn();
+   initFlowbite();
+   
+   this.islogin = this.authState.isLoggedIn();
+  
   }
-
-
-  isLogin():void{
-
-  }
-
 
 
   showLogin() {
