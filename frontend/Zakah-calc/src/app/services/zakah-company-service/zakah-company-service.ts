@@ -1,62 +1,94 @@
-// src/app/services/zakah-company-service/zakah-company-service.ts
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { from, Observable, tap } from 'rxjs'; // Updated import
 import { environment } from '../../../environments/environment';
 import { ZakahCompanyRecordResponse } from '../../models/response/ZakahCompanyResponse';
 import { ZakahCompanyRecordRequest } from '../../models/request/ZakahCompanyRequest';
-import { ZakahFormData } from '../../models/zakah.model';
+import { ZakahCompanyExcelService } from './zakah-company-excel-service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ZakahCompanyRecordService {
-  private readonly BASE_URL = `${environment.apiUrl}/zakah/company`;
 
+  private readonly BASE_URL = `${environment.apiUrl}/zakah/company`;
+  private excelService = inject(ZakahCompanyExcelService);
+
+  formData = signal<ZakahCompanyRecordRequest>(this.getInitialFormData());
   latestResult = signal<ZakahCompanyRecordResponse | null>(null);
   history = signal<ZakahCompanyRecordResponse[]>([]);
-
-  // إشارات للـ wizard
-  formData = signal<ZakahFormData>(this.getInitialFormData());
   currentWizardStep = signal<number>(0);
   wizardSteps = signal<string[]>(['البداية', 'الأصول', 'الالتزامات', 'التفاصيل', 'مراجعة']);
   isCalculating = signal<boolean>(false);
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  private getInitialFormData(): ZakahFormData {
-    return {
-      balanceSheetDate: '',
-      cash: 0,
-      stocks: 0,
-      inventory: 0,
-      receivables: 0,
-      accountPayable: 0,
-      expenses: 0,
-      shortTermLoans: 0,
-      goldWeightInGrams: 0,
-      goldPricePerGram: 75.21,
-      longTermDebt: 0,
-      zakahAmount: 0
-    };
+  getTemplate(): Observable<Blob> {
+    return this.http.get('/templates/balance_sheet_templete.xlsx', { responseType: 'blob' });
+  }
+  resetForm(): void {
+    this.formData.set(this.getInitialFormData());
+    this.currentWizardStep.set(0);
   }
 
-  updateFormData(patch: Partial<ZakahFormData>): void {
+  readCompanyExcelObservable(file: File): Observable<ZakahCompanyRecordRequest> {
+    return from(this.excelService.readCompanyExcel(file));
+  }
+
+  calculate(): Observable<ZakahCompanyRecordResponse> {
+    const data = this.formData();
+    const request: ZakahCompanyRecordRequest = {
+      balanceSheetDate: '',
+      cashEquivalents: 0,
+      investment: 0,
+      inventory: 0,
+      accountsReceivable: 0,
+      accountsPayable: 0,
+      accruedExpenses: 0,
+      shortTermLiability: 0,
+      yearlyLongTermLiabilities: 0,
+      goldPrice: 0
+    };
+
+    return this.http.post<ZakahCompanyRecordResponse>(`${this.BASE_URL}/calculate`, request)
+      .pipe(
+        tap(response => {
+          this.latestResult.set(response);
+          this.history.update(h => [response, ...h]);
+          this.resetForm();
+        })
+      );
+  }
+
+  private getInitialFormData(): ZakahCompanyRecordRequest {
+    return {
+  balanceSheetDate: new Date().toISOString().split('T')[0],
+  cashEquivalents: 0,
+  investment: 0,
+  inventory: 0,
+  accountsReceivable: 0,
+  accountsPayable: 0,
+  accruedExpenses: 0,
+  shortTermLiability: 0,
+  yearlyLongTermLiabilities: 0,
+  goldPrice: 0
+};
+  }
+
+
+  updateFormData(patch: Partial<ZakahCompanyRecordRequest>): void {
     this.formData.update(current => ({ ...current, ...patch }));
   }
 
   nextStep(): void {
-    const current = this.currentWizardStep();
-    const totalSteps = this.wizardSteps().length;
-    if (current < totalSteps - 1) {
-      this.currentWizardStep.set(current + 1);
+    if (this.currentWizardStep() < this.wizardSteps().length - 1) {
+      this.currentWizardStep.update(s => s + 1);
     }
   }
 
   prevStep(): void {
-    const current = this.currentWizardStep();
-    if (current > 0) {
-      this.currentWizardStep.set(current - 1);
+    if (this.currentWizardStep() > 0) {
+      this.currentWizardStep.update(s => s - 1);
     }
   }
 
@@ -65,88 +97,54 @@ export class ZakahCompanyRecordService {
       this.currentWizardStep.set(stepIndex);
     }
   }
-
-  async calculateZakah(): Promise<void> {
-    this.isCalculating.set(true);
-
-    try {
-      const formData = this.formData();
-
-      // تحويل ZakahFormData إلى ZakahCompanyRecordRequest
-      const request: ZakahCompanyRecordRequest = {
-        balanceSheetDate: this.formatDateForAPI(formData.balanceSheetDate),
-        cashEquivalents: formData.cash,
-        accountsReceivable: formData.receivables,
-        inventory: formData.inventory,
-        investment: formData.stocks,
-        accountsPayable: formData.accountPayable,
-        accruedExpenses: formData.expenses,
-        shortTermLiability: formData.shortTermLoans,
-        yearlyLongTermLiabilities: formData.longTermDebt,
-        goldPrice: formData.goldPricePerGram
-      };
-
-      console.log('Sending request to API:', request);
-      const response = await this.calculateAndSave(request).toPromise();
-
-      if (response) {
-        this.latestResult.set(response);
-        this.updateFormData({ zakahAmount: response.zakahAmount });
-
-        // تحديث الـ history
-        this.history.update(history => [response, ...history]);
-      }
-
-    } catch (error) {
-      console.error('Error calculating zakah:', error);
-    } finally {
-      this.isCalculating.set(false);
-    }
-  }
-
-  private formatDateForAPI(dateStr: string): string {
-    if (!dateStr) return this.formatDate(new Date());
-
-    try {
-      const date = new Date(dateStr);
-      return this.formatDate(date);
-    } catch {
-      return this.formatDate(new Date());
-    }
-  }
-
-  private formatDate(date: Date): string {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-  }
-
-  // الوظائف الأصلية للـ API
-  calculateAndSave(
-    request: ZakahCompanyRecordRequest
-  ): Observable<ZakahCompanyRecordResponse> {
-    return this.http.post<ZakahCompanyRecordResponse>(
-      `${this.BASE_URL}/calculate`,
-      request
-    );
-  }
-
   getAllSummaries(): Observable<ZakahCompanyRecordResponse[]> {
-    return this.http.get<ZakahCompanyRecordResponse[]>(
-      `${this.BASE_URL}/summaries`
-    );
+    return this.http.get<ZakahCompanyRecordResponse[]>(`${this.BASE_URL}/summaries`);
   }
 
-  getById(id: number): Observable<ZakahCompanyRecordResponse> {
-    return this.http.get<ZakahCompanyRecordResponse>(
-      `${this.BASE_URL}/${id}`
-    );
+  loadById(id: number): Observable<ZakahCompanyRecordResponse> {
+    return this.http.get<ZakahCompanyRecordResponse>(`${this.BASE_URL}/${id}`);
   }
 
-  deleteById(id: number): Observable<void> {
-    return this.http.delete<void>(
-      `${this.BASE_URL}/${id}`
-    );
+  loadfullrecord(id: number): Observable<ZakahCompanyRecordResponse> {
+    return this.http.get<ZakahCompanyRecordResponse>(`${this.BASE_URL}/${id}`);
+  }
+ 
+  calculateAndSave(request: ZakahCompanyRecordRequest): Observable<ZakahCompanyRecordResponse> {
+    return this.http.post<ZakahCompanyRecordResponse>(`${this.BASE_URL}/calculate`, request);
+  }
+
+  deleteRecord(id: number): void {
+    this.http.delete<void>(`${this.BASE_URL}/${id}`).subscribe({
+      next: () => {
+        // 1. الحصول على القائمة الحالية قبل التعديل
+        const currentHistory = this.history();
+
+        // 2. إيجاد مكان (Index) السجل الذي سيتم حذفه
+        const deletedIndex = currentHistory.findIndex(r => r.id === id);
+
+        // 3. تحديث قائمة التاريخ (الحذف من الذاكرة)
+        const updatedHistory = currentHistory.filter(r => r.id !== id);
+        this.history.set(updatedHistory);
+
+        // 4. منطق التبديل التلقائي:
+        // إذا كان السجل المحذوف هو المعروض حالياً في لوحة التحكم
+        if (this.latestResult()?.id === id) {
+          if (updatedHistory.length > 0) {
+            // حاول عرض السجل الذي كان قبله في القائمة
+            // إذا كان المحذوف هو أول واحد، سيعرض الجديد الذي أصبح أول واحد
+            const nextIndex = deletedIndex > 0 ? deletedIndex - 1 : 0;
+            this.latestResult.set(updatedHistory[nextIndex]);
+          } else {
+            // إذا لم يتبقى أي سجلات، قم بتصفير العرض
+            this.latestResult.set(null);
+          }
+        }
+
+        console.log('تم الحذف والتبديل للسجل التالي بنجاح');
+      },
+      error: (err) => {
+        console.error('فشل الحذف:', err);
+      }
+    });
   }
 }

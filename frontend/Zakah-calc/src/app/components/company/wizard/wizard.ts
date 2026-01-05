@@ -1,10 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject, computed, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal
+} from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ZakahCompanyRecordService } from '../../../services/zakah-company-service/zakah-company-service';
 import { ZakahCompanyExcelService } from '../../../services/zakah-company-service/zakah-company-excel-service';
-import { ZakahFormData } from '../../../models/zakah.model';
 import { TooltipComponent } from '../../../shared/tooltip/tooltip';
 import { ZakahCompanyRecordRequest } from '../../../models/request/ZakahCompanyRequest';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-wizard',
@@ -14,9 +19,10 @@ import { ZakahCompanyRecordRequest } from '../../../models/request/ZakahCompanyR
   styleUrls: ['./wizard.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ZakahCompanyRecordComponent {
+export class ZakahCompanyRecordComponent { 
   private excelService = inject(ZakahCompanyExcelService);
-  private zakahService = inject(ZakahCompanyRecordService);
+  zakahService = inject(ZakahCompanyRecordService);
+  private router = inject(Router);
 
   formData = this.zakahService.formData;
   currentStep = this.zakahService.currentWizardStep;
@@ -28,182 +34,201 @@ export class ZakahCompanyRecordComponent {
   errorMessage = signal<string | null>(null);
   downloadInProgress = signal(false);
 
-  // دالة لتحويل أي تاريخ إلى yyyy-MM-dd
-  private toYYYYMMDD(dateStr: string): string {
-    if (!dateStr) return '';
+  // ================= Validation =================
+  fieldErrors = signal<Partial<Record<keyof ZakahCompanyRecordRequest, string>>>({});
 
+  ngOnInit() {
+    // Initialize balanceSheetDate if not set
+    const currentData = this.formData();
+    if (!currentData.balanceSheetDate) {
+      const today = new Date().toISOString().split('T')[0];
+      this.zakahService.updateFormData({ balanceSheetDate: today });
+    }
+  }
+
+  // ================= Date Helpers =================
+
+  private normalizeToISO(dateStr: string): string {
+    if (!dateStr) return '';
     const trimmed = dateStr.trim();
 
-    // 1. إذا كان yyyy-MM-dd بالفعل
-    const yyyyMMddMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-    if (yyyyMMddMatch) {
-      const [, year, month, day] = yyyyMMddMatch.map(n => parseInt(n, 10));
-      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    // 1. معالجة الصيغة DD-MM-YYYY القادمة من الإكسيل
+    const dmyMatch = trimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+    if (dmyMatch) {
+      const [, d, m, y] = dmyMatch;
+      return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
     }
 
-    // 2. إذا كان dd/MM/yyyy
-    const ddMMyyyySlash = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (ddMMyyyySlash) {
-      const [, day, month, year] = ddMMyyyySlash.map(n => parseInt(n, 10));
-      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    // 2. معالجة صيغة YYYY-MM-DD القياسية
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
     }
 
-    // 3. إذا كان dd-MM-yyyy
-    const ddMMyyyyDash = trimmed.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-    if (ddMMyyyyDash) {
-      const [, day, month, year] = ddMMyyyyDash.map(n => parseInt(n, 10));
-      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    }
-
-    // 4. محاولة مع Date
-    try {
-      const date = new Date(trimmed);
-      if (!isNaN(date.getTime())) {
-        return date.toISOString().split('T')[0];
-      }
-    } catch (e) {
-      console.error('Date parsing error:', e);
-    }
-
-    return '';
+    // 3. محاولة أخيرة باستخدام كائن Date
+    const date = new Date(trimmed);
+    return !isNaN(date.getTime()) ? date.toISOString().split('T')[0] : '';
   }
 
   getDisplayDate(): string {
-    const date = this.formData().balanceSheetDate;
+    return this.formData().balanceSheetDate || '';
+  }
 
-    if (!date) {
-      const today = new Date().toISOString().split('T')[0];
-      this.zakahService.updateFormData({ balanceSheetDate: today });
-      return today;
+  // ================= Inputs =================
+
+  private validateField(
+    key: keyof ZakahCompanyRecordRequest,
+    value: number | string
+  ): string | null {
+    if (value === null || value === undefined || value === '') {
+      return 'هذا الحقل مطلوب';
     }
 
-    return date;
+    if (typeof value === 'number' && value < 0) {
+      return 'القيمة لا يمكن أن تكون سالبة';
+    }
+
+    return null;
   }
 
-  onDateChange(event: Event) {
-    const value = (event.target as HTMLInputElement).value;
-    // input type="date" يعطي yyyy-MM-dd مباشرة
-    this.zakahService.updateFormData({ balanceSheetDate: value });
-  }
-
-  onInputChange(event: Event) {
+  onInputChange(event: Event): void {
     const target = event.target as HTMLInputElement;
-    const key = target.name as keyof ZakahFormData;
+    const key = target.name as keyof ZakahCompanyRecordRequest;
     const value = target.valueAsNumber || 0;
 
-    const patch: Partial<ZakahFormData> = { [key]: value };
-    this.zakahService.updateFormData(patch);
+    this.zakahService.updateFormData({ [key]: value });
+
+    const error = this.validateField(key, value);
+    this.fieldErrors.update(errors => ({
+      ...errors,
+      [key]: error || undefined
+    }));
   }
 
-  async downloadExcelTemplate() {
+  onDateChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.zakahService.updateFormData({ balanceSheetDate: value });
+
+    this.fieldErrors.update(errors => ({
+      ...errors,
+      balanceSheetDate: value ? undefined : 'يرجى اختيار تاريخ'
+    }));
+  }
+
+  private validateAll(): boolean {
+    const data = this.formData();
+    let valid = true;
+    const errors: Partial<Record<keyof ZakahCompanyRecordRequest, string>> = {};
+
+    (Object.keys(data) as (keyof ZakahCompanyRecordRequest)[]).forEach(key => {
+      const value = data[key] as any;
+      const error = this.validateField(key, value);
+      if (error) {
+        errors[key] = error;
+        valid = false;
+      }
+    });
+
+    this.fieldErrors.set(errors);
+    return valid;
+  }
+
+  // ================= Excel =================
+
+  downloadExcelTemplate(): void {
     this.downloadInProgress.set(true);
-
-    try {
-      const templateUrl = '/templates/balance_sheet_templete.xlsx';
-      const response = await fetch(templateUrl);
-
-      if (!response.ok) {
-        throw new Error('لم يتم العثور على ملف النموذج');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'balance_sheet_templete.xlsx';
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-    } catch (error) {
-      console.error('Error downloading template:', error);
-      this.errorMessage.set('حدث خطأ في تحميل النموذج. تأكد من وجود الملف.');
-    } finally {
-      this.downloadInProgress.set(false);
-    }
+    this.zakahService.getTemplate().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'balance_sheet_templete.xlsx';
+        link.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => this.errorMessage.set('حدث خطأ في تحميل النموذج.'),
+      complete: () => this.downloadInProgress.set(false)
+    });
   }
 
-  async onFileChange(event: Event) {
-    const target = event.target as HTMLInputElement;
-    if (target.files && target.files.length > 0) {
-      const file = target.files[0];
-      this.fileName.set(file.name);
-      this.isLoading.set(true);
-      this.errorMessage.set(null);
+  onFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
 
-      try {
-        const excelRequest: ZakahCompanyRecordRequest = await this.excelService.readCompanyExcel(file);
+    const file = input.files[0];
+    this.fileName.set(file.name);
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
 
-        const formDataPatch: Partial<ZakahFormData> = {
-          cash: excelRequest.cashEquivalents || 0,
-          stocks: excelRequest.investment || 0,
-          inventory: excelRequest.inventory || 0,
-          receivables: excelRequest.accountsReceivable || 0,
-          accountPayable: excelRequest.accountsPayable || 0,
-          expenses: excelRequest.accruedExpenses || 0,
-          shortTermLoans: excelRequest.shortTermLiability || 0,
-          longTermDebt: excelRequest.yearlyLongTermLiabilities || 0,
-          goldPricePerGram: excelRequest.goldPrice || 0
-        };
+    this.zakahService.readCompanyExcelObservable(file).subscribe({
+      next: (excelData) => {
+        this.zakahService.updateFormData({
+          cashEquivalents: excelData.cashEquivalents || 0,
+          investment: excelData.investment || 0,
+          inventory: excelData.inventory || 0,
+          accountsReceivable: excelData.accountsReceivable || 0,
+          accountsPayable: excelData.accountsPayable || 0,
+          accruedExpenses: excelData.accruedExpenses || 0,
+          shortTermLiability: excelData.shortTermLiability || 0,
+          yearlyLongTermLiabilities: excelData.yearlyLongTermLiabilities || 0,
+          goldPrice: excelData.goldPrice || 0,
+          balanceSheetDate: excelData.balanceSheetDate 
+            ? this.normalizeToISO(excelData.balanceSheetDate.toString()) 
+            : new Date().toISOString().split('T')[0]
+        });
 
-        // تحويل التاريخ إلى yyyy-MM-dd
-        if (excelRequest.balanceSheetDate) {
-          const dateStr = excelRequest.balanceSheetDate.toString();
-          const formattedDate = this.toYYYYMMDD(dateStr);
-
-          if (formattedDate) {
-            formDataPatch.balanceSheetDate = formattedDate;
-          } else {
-            // إذا فشل التحويل، استخدم اليوم
-            formDataPatch.balanceSheetDate = new Date().toISOString().split('T')[0];
-          }
-        } else {
-          // إذا لم يكن هناك تاريخ، استخدم اليوم
-          formDataPatch.balanceSheetDate = new Date().toISOString().split('T')[0];
-        }
-
-        this.zakahService.updateFormData(formDataPatch);
-
-        const reviewStepIndex = this.steps().indexOf('التفاصيل');
-        if (reviewStepIndex !== -1) {
-          this.zakahService.goToStep(reviewStepIndex);
-        }
-
-      } catch (error) {
-        console.error('Error reading Excel file:', error);
-        this.errorMessage.set('حدث خطأ في قراءة ملف Excel. تأكد من تنسيق الملف.');
-      } finally {
+        const detailsStep = this.steps().indexOf('التفاصيل');
+        if (detailsStep !== -1) this.zakahService.goToStep(detailsStep);
+      },
+      error: () => this.errorMessage.set('حدث خطأ في قراءة ملف Excel.'),
+      complete: () => {
         this.isLoading.set(false);
-        target.value = '';
+        input.value = '';
       }
-    } else {
-      this.fileName.set(null);
-    }
+    });
   }
 
-  next() {
+  // ================= Wizard =================
+
+  next(): void {
     this.zakahService.nextStep();
   }
 
-  back() {
+  back(): void {
     this.zakahService.prevStep();
   }
 
-  async calculate() {
-    await this.zakahService.calculateZakah();
+  calculate(): void {
+    if (!this.validateAll()) return;
+
+    this.errorMessage.set(null);
+    this.isCalculating.set(true);
+
+    this.zakahService.calculate().subscribe({
+      next: (result) => {
+       this.zakahService.latestResult.set(result);
+       this.isCalculating.set(false);
+        this.router.navigate(['/company/after-calc']);
+      },
+      error: (err) => {
+        console.error('Calculation error:', err);
+        this.errorMessage.set('حدث خطأ أثناء حساب الزكاة. يرجى التأكد من البيانات والمحاولة لاحقاً.');
+        this.isCalculating.set(false);
+      },
+      complete: () => {
+        this.isCalculating.set(false);
+      }
+    }); 
   }
 
-  // دالة لعرض التاريخ بشكل مقروء (فقط للعرض)
+  // ================= Display =================
+
   formatDateForDisplay(dateStr: string): string {
     if (!dateStr) return '';
 
-    // تحويل من yyyy-MM-dd إلى dd/MM/yyyy للعرض
     const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (match) {
-      const [, year, month, day] = match;
-      return `${day}/${month}/${year}`;
+      const [, y, m, d] = match;
+      return `${d}/${m}/${y}`;
     }
 
     return dateStr;

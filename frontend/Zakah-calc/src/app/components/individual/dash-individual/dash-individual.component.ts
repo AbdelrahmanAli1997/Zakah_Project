@@ -1,7 +1,7 @@
-import {Component, computed, inject, signal} from '@angular/core';
-import {CurrencyPipe, DatePipe} from '@angular/common';
-import {ZakahIndividualRecordService} from '../../../services/zakah-individual-service/zakah-individual-service';
-import {Router} from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { ZakahIndividualRecordService } from '../../../services/zakah-individual-service/zakah-individual-service';
+import { Router } from '@angular/router';
 import {
   ZakahIndividualRecordResponse,
   ZakahIndividualRecordSummaryResponse
@@ -15,63 +15,90 @@ import {
 })
 export class DashIndividualComponent {
 
-
-  private zakahService = inject(ZakahIndividualRecordService);
+  zakahService = inject(ZakahIndividualRecordService);
   private router = inject(Router);
   isLoading = signal(true);
-  // 🔹 الحالي
-  currentRecord = signal<ZakahIndividualRecordResponse | null>(null);
 
-  // 🔹 التاريخ
-  history = signal<ZakahIndividualRecordSummaryResponse[]>([]);
+  // 🔹 الربط المباشر بـ signals الخدمة لضمان التزامن اللحظي
+  currentRecord = this.zakahService.latestResult;
+  history = this.zakahService.history;
 
   isViewingHistory = signal(false);
+
+  ngOnInit() {
+    // تحميل البيانات وتحديث الـ signals في الخدمة
+    this.zakahService.getAllSummaries().subscribe({
+      next: (list) => {
+        this.zakahService.history.set(list); // تحديث الخدمة
+        this.loadFullRecord(list[0].id);
+
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+
+
+  private loadFullRecord(id: number) {
+    this.zakahService.loadById(id).subscribe({
+      next: (res) => {
+        console.log('Data Received from API:', res); // تأكد من مسميات الحقول هنا في الكونسول
+        // نقوم بعمل تصفير مؤقت ثم وضع القيمة الجديدة لضمان استجابة الـ Signal
+        this.zakahService.latestResult.set(null);
+        setTimeout(() => {
+          this.zakahService.latestResult.set(res);
+        }, 0);
+      },
+      error: (err) => console.error('Error loading record:', err)
+    });
+  }
+
+  onSelectHistoryItem(item: any) {
+    this.isViewingHistory.set(true);
+    this.loadFullRecord(item.id);
+  }
+
+  onViewLatest() {
+    // منطق عرض الأحدث يعتمد على أول عنصر في المصفوفة المحدثة
+    const h = this.history();
+    if (h.length > 0) {
+      this.loadFullRecord(h[0].id);
+    }
+    this.isViewingHistory.set(false);
+  }
+
+confirmDelete(id: number) {
+  if (confirm('هل أنت متأكد من رغبتك في حذف هذا السجل نهائياً؟')) {
+    this.zakahService.deleteRecord(id).subscribe({
+      next: () => {
+        // تحديث القائمة بعد الحذف
+        this.zakahService.history.update(h =>
+          h.filter(item => item.id !== id)
+        );
+
+        // لو كنت بتعرض السجل المحذوف، رجّع للأحدث
+        const current = this.currentRecord();
+        if (current && current.id === id) {
+          const h = this.history();
+          this.zakahService.latestResult.set(h.length ? h[0] : null);
+        }
+      },
+      error: (err) => {
+        console.error('Delete failed', err);
+      }
+    });
+  }
+}
+
+  // 🔹 حساب جديد
+  onStartNew() {
+    this.router.navigate(['/individual/wizard']);
+  }
 
   historicalAverage = computed(() => {
     const h = this.history();
     if (!h.length) return 0;
     return h.reduce((sum, i) => sum + i.zakahAmount, 0) / h.length;
   });
-
-  ngOnInit() {
-    // 1️⃣ تحميل history
-    this.zakahService.getAllSummaries().subscribe({
-      next: (list) => {
-        this.history.set(list);
-
-        // 2️⃣ لو في latestResult من wizard
-        if (this.zakahService.latestResult()) {
-          this.currentRecord.set(this.zakahService.latestResult());
-        }
-        // 3️⃣ لو Refresh / Direct
-        else if (list.length) {
-          const latest = list[0]; // بافتراض API بيرجع الأحدث أولاً
-          this.loadFullRecord(latest.id);
-        }
-      }
-    });
-  }
-
-   private loadFullRecord(id: number) {
-    this.zakahService.getById(id).subscribe({
-      next: (res) => this.currentRecord.set(res)
-    });
-  }
-
-   onSelectHistoryItem(item: ZakahIndividualRecordSummaryResponse) {
-    this.isViewingHistory.set(true);
-    this.loadFullRecord(item.id);
-  }
-
-  // 🔹 عرض الأحدث
-  onViewLatest() {
-    this.currentRecord.set(this.zakahService.latestResult());
-    this.isViewingHistory.set(false);
-  }
-
-  // 🔹 حساب جديد
-  onStartNew() {
-    this.router.navigate(['/individual/wizard']);
-  }
 
 }

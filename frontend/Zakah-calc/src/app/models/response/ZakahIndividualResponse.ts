@@ -1,18 +1,9 @@
-import {ZakahStatus} from '../enums/ZakahStatus';
+import { ZakahStatus } from '../enums/ZakahStatus';
 
 export interface ZakahIndividualRecordResponse {
-currentZakahPool: string|number;
-balanceSheetDate: string|number|Date;
-totalLiabilities: string|number;
-nisabAmount: string|number;
-cashEquivalents: any;
-investment: any;
-inventory: any;
-accountsReceivable: any;
-accountsPayable: any;
-accruedExpenses: any;
-shortTermLiability: any;
-yearlyLongTermLiabilities: any;
+
+  nisabAmount: string | number;
+  
   id: number;
   status: ZakahStatus;
 
@@ -25,7 +16,6 @@ yearlyLongTermLiabilities: any;
 
   // Zakah Info
   goldPrice: number;
-
   // Main Info
   totalAssets: number;
   zakahAmount: number;
@@ -33,7 +23,7 @@ yearlyLongTermLiabilities: any;
 }
 
 export interface ZakahIndividualRecordSummaryResponse {
-balanceSheetDate: string|number|Date;
+  balanceSheetDate: string | number | Date;
   id: number;
   status: ZakahStatus;
   zakahAmount: number;

@@ -139,8 +139,8 @@
         </div>
 
         <!-- Submit -->
-        <button type="submit"  class="w-full bg-slate-800 text-white py-3 rounded-lg"
-          [disabled]="isLoading || registerForm.invalid">
+        <button type="submit" class="w-full bg-slate-800 text-white py-3 rounded-lg"
+          [disabled]="isLoading() || registerForm.invalid">
           {{ isLoading() ? 'جاري إنشاء الحساب...' : 'إنشاء حساب' }}
         </button>
 

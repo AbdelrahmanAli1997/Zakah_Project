@@ -61,6 +61,4 @@ public class ZakahCompanyRecord extends ZakahRecord {
     @Column(name= "zakah_pool")
     private BigDecimal zakahPool;
 
-    @Column(name = "zakah_amount")
-    private BigDecimal zakahAmount;
 }

@@ -1,229 +1,152 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ZakahIndividualRecordRequest } from '../../../models/request/ZakahIndividualRequest';
-import { ZakahIndividualRecordSummaryResponse } from '../../../models/response/ZakahIndividualResponse';
 import { ZakahIndividualRecordService } from '../../../services/zakah-individual-service/zakah-individual-service';
 import { Router } from '@angular/router';
-import { TooltipComponent } from '../../../shared/tooltip/tooltip';
-import { FormsModule } from '@angular/forms';
+import { CurrencyPipe } from '@angular/common';
+import { TooltipComponent } from "../../../shared/tooltip/tooltip";
 
 @Component({
   selector: 'app-wizard-individual',
   standalone: true,
   templateUrl: './wizard-individual.component.html',
   styleUrls: ['./wizard-individual.component.css'],
-  imports: [CommonModule, CurrencyPipe, TooltipComponent, FormsModule]
+  imports: [CurrencyPipe, TooltipComponent]
 })
 export class WizardIndividualComponent {
 
-  private zakahService = inject(ZakahIndividualRecordService);
+  zakahService = inject(ZakahIndividualRecordService);
   private router = inject(Router);
 
-  // Wizard steps
-  steps = signal([
-    'البداية',
-    'الأصول',
-    'التفاصيل',
-    'مراجعة'
-  ]);
+  formData = this.zakahService.formData;
+  currentStep = this.zakahService.currentWizardStep;
+  steps = this.zakahService.wizardSteps;
+  isCalculating = this.zakahService.isCalculating;
 
-  currentStep = signal(0);
-  isCalculating = signal(false);
+  fileName = signal<string | null>(null);
+  isLoading = signal(false);
+  errorMessage = signal<string | null>(null);
+  downloadInProgress = signal(false);
 
-  formData = signal<ZakahIndividualRecordRequest>({
-    cash: 0,
-    gold: 0,
-    silver: 0,
-    bonds: 0,
-    stocks: 0,
-    goldPrice: 0,
-    calculationDate: '',
-  });
+  // ================= Validation =================
+  fieldErrors = signal<Partial<Record<keyof ZakahIndividualRecordRequest, string>>>({});
 
-  zakahResult = signal<ZakahIndividualRecordSummaryResponse | null>(null);
-
-  // فاليديشن للأخطاء
-  inputErrors = signal<{[key: string]: string}>({});
-
-  // قائمة الحقول المطلوبة مع أسماءها العربية
-  fieldLabels: {[key: string]: string} = {
-    cash: 'النقد والأرصدة البنكية',
-    gold: 'قيمة الذهب المملوكة',
-    silver: 'قيمة الفضة المملوكة',
-    bonds: 'السندات والصكوك',
-    stocks: 'الأسهم والاستثمارات',
-    goldPrice: 'سعر الذهب للجرام'
-  };
-
-  // دالة للتحقق من صحة الرقم في الوقت الحقيقي
-  validateNumberInRealTime(value: string, fieldName: string): boolean {
-    if (value === '' || value === null || value === undefined) {
-      // إذا كان فارغ، امسح الخطأ (يمكن أن يكون صفر)
-      this.inputErrors.update(errors => {
-        const newErrors = {...errors};
-        delete newErrors[fieldName];
-        return newErrors;
-      });
-      return true;
+  ngOnInit() {
+    const currentData = this.formData();
+    if (!currentData.calculationDate) {
+      const today = new Date().toISOString().split('T')[0];
+      this.zakahService.updateFormData({ calculationDate: today });
     }
+  }
 
-    // تحقق إذا كان يحتوي على حروف غير مسموح بها
-    const invalidChars = /[a-zA-Z\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(value);
-    if (invalidChars) {
-      this.inputErrors.update(errors => ({...errors, [fieldName]: `يجب أن يكون رقم فقط`}));
-      return false;
+  // ================= Date Helpers =================
+  getDisplayDate(): string {
+    return this.formData().calculationDate || '';
+  }
+
+  // ================= Inputs =================
+  private validateField(
+    key: keyof ZakahIndividualRecordRequest,
+    value: number | string | null
+  ): string | null {
+    if (value === null || value === undefined || value === '') {
+      return 'هذا الحقل مطلوب';
     }
-
-    // تحقق من الأرقام السالبة
-    if (value.includes('-')) {
-      this.inputErrors.update(errors => ({...errors, [fieldName]: `يجب أن يكون أكبر من أو يساوي صفر`}));
-      return false;
+    if (typeof value === 'number' && value < 0) {
+      return 'القيمة لا يمكن أن تكون سالبة';
     }
+    return null;
+  }
 
-    const num = Number(value);
+  onInputChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const key = target.name as keyof ZakahIndividualRecordRequest;
 
-    // التحقق إذا كان رقم
-    if (isNaN(num)) {
-      this.inputErrors.update(errors => ({...errors, [fieldName]: `يجب أن يكون رقم صالح`}));
-      return false;
-    }
+    if (!key) return;
 
-    // التحقق إذا كان موجب أو صفر
-    if (num < 0) {
-      this.inputErrors.update(errors => ({...errors, [fieldName]: `يجب أن يكون أكبر من أو يساوي صفر`}));
-      return false;
-    }
+    const rawValue = target.value;
+    const value =
+      rawValue === '' || isNaN(Number(rawValue))
+        ? 0
+        : Number(rawValue);
 
-    // إذا كان صالح، امسح الخطأ
-    this.inputErrors.update(errors => {
-      const newErrors = {...errors};
-      delete newErrors[fieldName];
-      return newErrors;
+    this.zakahService.updateFormData({
+      [key]: value
     });
 
-    return true;
+    const error = this.validateField(key, value);
+    this.fieldErrors.update(errors => ({
+      ...errors,
+      [key]: error || undefined
+    }));
   }
 
-  next() {
-    if (this.canProceed()) {
-      if (this.currentStep() < this.steps().length - 1) {
-        this.currentStep.set(this.currentStep() + 1);
-      }
-    }
-  }
 
-  back() {
-    if (this.currentStep() > 0) {
-      this.currentStep.set(this.currentStep() - 1);
-    }
-  }
 
-  // عند كتابة أي حرف
-  onInputChange(event: Event) {
-    const target = event.target as HTMLInputElement;
-    const name = target.name as keyof ZakahIndividualRecordRequest;
-    const value = target.value;
-
-    // تحقق في الوقت الحقيقي
-    const isValid = this.validateNumberInRealTime(value, name);
-
-    // إذا كان صالح، خزّن القيمة
-    if (isValid) {
-      const numValue = parseFloat(value) || 0;
-      this.formData.update(prev => ({ ...prev, [name]: numValue }));
-    } else {
-      // إذا كان غير صالح، اضبطه على 0
-      this.formData.update(prev => ({ ...prev, [name]: 0 }));
-    }
-  }
-
-  // عند خروج التركيز (blur) - تحقق إضافي
-  onInputBlur(event: Event) {
-    const target = event.target as HTMLInputElement;
-    const name = target.name as keyof ZakahIndividualRecordRequest;
-    const value = target.value;
-
-    if (value === '' || value === null || value === undefined) {
-      // إذا ترك الحقل فارغ، اضبطه على 0
-      target.value = '0';
-      this.formData.update(prev => ({ ...prev, [name]: 0 }));
-      this.inputErrors.update(errors => {
-        const newErrors = {...errors};
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-  }
-
-  onDateChange(event: Event) {
+  onDateChange(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
-    this.formData.update(prev => ({ ...prev, calculationDate: value }));
+    this.zakahService.updateFormData({ calculationDate: value });
+    this.fieldErrors.update(errors => ({
+      ...errors,
+      calculationDate: value ? undefined : 'يرجى اختيار تاريخ'
+    }));
   }
 
-  // دالة للحصول على خطأ حقل معين
-  getFieldError(fieldName: string): string | null {
-    return this.inputErrors()[fieldName] || null;
-  }
+  private validateAll(): boolean {
+    const data = this.formData();
+    let valid = true;
+    const errors: Partial<Record<keyof ZakahIndividualRecordRequest, string>> = {};
 
-  // دالة للتحقق إذا كان هناك أخطاء
-  hasErrors(): boolean {
-    return Object.keys(this.inputErrors()).length > 0;
-  }
+    const requiredFields: (keyof ZakahIndividualRecordRequest)[] = [
+      'cash', 'gold', 'silver', 'bonds', 'stocks', 'goldPrice', 'calculationDate'
+    ];
 
-  // دالة للتحقق إذا كان يمكن التالي
-  canProceed(): boolean {
-    // إذا في أخطاء، ماينفعش
-    if (this.hasErrors()) {
-      return false;
-    }
-
-    // إذا في خطوة الأصول، تأكد من وجود بيانات على الأقل
-    if (this.steps()[this.currentStep()] === 'الأصول') {
-      const data = this.formData();
-      // إذا كل الحقول صفر، منع التالي
-      if (data.cash === 0 && data.gold === 0 && data.silver === 0 &&
-          data.bonds === 0 && data.stocks === 0) {
-        return false;
+    requiredFields.forEach(key => {
+      const value = data[key];
+      const error = this.validateField(key, value as any);
+      if (error) {
+        errors[key] = error;
+        valid = false;
       }
-    }
+    });
 
-    return true;
+    this.fieldErrors.set(errors);
+    return valid;
   }
 
-  // دالة لعرض التاريخ
-  getDisplayDate(): string {
-    const date = this.formData().calculationDate;
-    if (!date) {
-      const today = new Date().toISOString().split('T')[0];
-      this.formData.update(prev => ({ ...prev, calculationDate: today }));
-      return today;
-    }
-    return date;
+  // ================= Wizard =================
+  next(): void { this.zakahService.nextStep(); }
+  back(): void { this.zakahService.prevStep(); }
+
+  calculate(): void {
+    if (!this.validateAll()) return;
+
+    this.errorMessage.set(null);
+    this.isCalculating.set(true);
+
+    this.zakahService.calculate().subscribe({
+      next: (result) => {
+        console.log('Calculation result:', result);
+        this.zakahService.latestResult.set(result);
+        this.isCalculating.set(false);
+        this.router.navigate(['/individual/after-calc']);
+      },
+      error: (err) => {
+        console.error('Calculation error:', err);
+        this.errorMessage.set('حدث خطأ أثناء حساب الزكاة. يرجى التأكد من البيانات والمحاولة لاحقاً.');
+        this.isCalculating.set(false);
+      },
+      complete: () => { this.isCalculating.set(false); }
+    });
   }
 
-  // دالة لعرض التاريخ بشكل مقروء
+  // ================= Display =================
   formatDateForDisplay(dateStr: string): string {
     if (!dateStr) return '';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      const [year, month, day] = dateStr.split('-');
-      return `${day}/${month}/${year}`;
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (match) {
+      const [, y, m, d] = match;
+      return `${d}/${m}/${y}`;
     }
     return dateStr;
-  }
-
-  calculate() {
-    if (!this.hasErrors()) {
-      this.isCalculating.set(true);
-
-      this.zakahService.calculateAndSave(this.formData()).subscribe({
-        next: (result) => {
-          // احفظ آخر نتيجة
-          this.zakahService.latestResult.set(result);
-          this.isCalculating.set(false);
-          this.router.navigate(['/individual/after-calc']);
-        },
-        error: () => this.isCalculating.set(false)
-      });
-    }
   }
 }
