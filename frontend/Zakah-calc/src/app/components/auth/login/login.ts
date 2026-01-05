@@ -1,36 +1,34 @@
 import {AfterViewInit, Component, ElementRef, OnInit, signal, ViewChild} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Router, RouterLink} from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 
-import {AuthService} from '../../../services/auth-service/auth.service';
-import {AuthenticationRequest} from '../../../models/request/IAuthRequest';
+import { AuthService } from '../../../services/auth-service/auth.service';
+import { AuthenticationRequest } from '../../../models/request/IAuthRequest';
 import * as CryptoJS from 'crypto-js';
 import {environment} from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
+  standalone: true, 
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login.html'
 })
 export class Login implements OnInit {
-
+ 
   secretKey: string = environment.secretKey;
   loginForm!: FormGroup;
   isLoading = signal(false);
   serverError = signal<string | null>(null);
-  @ViewChild('googleBtn', {static: true}) googleBtn!: ElementRef;
+  @ViewChild('googleBtn', { static: true }) googleBtn!: ElementRef;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
-  ) {
-  }
+  ) {}
 
-
-  ngOnInit(): void {
+ ngOnInit(): void {
     this.loginForm = this.fb.group({
       email: [
         '',
@@ -46,11 +44,13 @@ export class Login implements OnInit {
         [
           Validators.required,
           Validators.minLength(8),
-          Validators.maxLength(64)
+          Validators.maxLength(64),
+          Validators.pattern(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*\W).*$/)
         ]
       ]
     });
   }
+ 
 
   get f() {
     return this.loginForm.controls;
@@ -79,23 +79,26 @@ export class Login implements OnInit {
 
         if (code === 'BAD_CREDENTIALS') {
           this.serverError.set('البريد الإلكتروني أو كلمة المرور غير صحيحة');
-        } else if (code === 'ACCOUNT_NOT_VERIFIED') {
+        }
+
+        else if (code === 'ACCOUNT_NOT_VERIFIED') {
           const encryptedEmail = CryptoJS.AES.encrypt(
             request.email,
             this.secretKey
           ).toString();
 
           this.router.navigate(['/verify-otp'], {
-            queryParams: {email: encryptedEmail}
+            queryParams: { email: encryptedEmail }
           });
-        }else if (code === 'USER_ALREADY_DELETED') {
-          this.router.navigate(['/restore-account']);
-        } else {
+        }
+
+        else {
           this.serverError.set('حدث خطأ غير متوقع، حاول مرة أخرى');
         }
 
         this.isLoading.set(false);
       }
     });
+
   }
 }

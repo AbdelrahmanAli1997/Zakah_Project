@@ -38,16 +38,16 @@ export class ZakahCompanyRecordService {
   calculate(): Observable<ZakahCompanyRecordResponse> {
     const data = this.formData();
     const request: ZakahCompanyRecordRequest = {
-      balanceSheetDate: '',
-      cashEquivalents: 0,
-      investment: 0,
-      inventory: 0,
-      accountsReceivable: 0,
-      accountsPayable: 0,
-      accruedExpenses: 0,
-      shortTermLiability: 0,
-      yearlyLongTermLiabilities: 0,
-      goldPrice: 0
+      balanceSheetDate: data.balanceSheetDate,
+      cashEquivalents: data.cashEquivalents,
+      investment: data.investment,
+      inventory: data.inventory,
+      accountsReceivable: data.accountsReceivable,
+      accountsPayable: data.accountsPayable,
+      accruedExpenses: data.accruedExpenses,
+      shortTermLiability: data.shortTermLiability,
+      yearlyLongTermLiabilities: data.yearlyLongTermLiabilities,
+      goldPrice: data.goldPrice
     };
 
     return this.http.post<ZakahCompanyRecordResponse>(`${this.BASE_URL}/calculate`, request)

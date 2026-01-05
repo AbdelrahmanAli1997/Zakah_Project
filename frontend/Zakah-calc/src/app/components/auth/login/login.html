@@ -14,12 +14,12 @@
         <label class="font-medium text-slate-700 block mb-1.5">
           البريد الإلكتروني
         </label>
+        <input type="email" formControlName="email" placeholder="mohamed@gmail.com"
+          class="w-full px-4 py-2.5 border rounded-lg">
 
-        <input type="email" formControlName="email" placeholder="mohamed@gmail.com" class="w-full py-2.5 px-4 bg-white border rounded-lg
-             focus:ring-2 focus:ring-emerald-500 outline-none"
-          [class.border-red-500]="f['email'].invalid && f['email'].touched" (blur)="f['email'].markAsTouched()">
+        @if (f['email'].touched && f['email'].errors) {
 
-        @if (f['email'].errors?.['required'] && f['email'].touched) {
+        @if (f['email'].errors!['required'] || f['email'].touched) {
         <div
           class="flex items-center p-2 my-1 text-sm text-red-800 rounded-lg bg-red-100  border border-red-200 transition-opacity"
           role="alert">
@@ -30,17 +30,15 @@
           </svg>
           <span class="sr-only">Info</span>
           <div>
-            <span class="font-medium"> صيغة البريد الإلكتروني غير صحيحة
+            <span class="font-medium">
+              البريد الإلكتروني مطلوب
             </span>
           </div>
         </div>
-
         }
-
-        @if (!f['email'].errors?.['required'] && f['email'].errors?.['email'] && f['email'].touched) {
-
+        @if (f['email'].errors['minlength']) {
         <div
-          class="flex items-center p-4 my-1 text-sm text-red-800 rounded-lg bg-red-100  border border-red-200 transition-opacity"
+          class="flex items-center p-2 my-1 text-sm text-red-800 rounded-lg bg-red-100  border border-red-200 transition-opacity"
           role="alert">
           <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
             fill="currentColor" viewBox="0 0 20 20">
@@ -49,21 +47,37 @@
           </svg>
           <span class="sr-only">Info</span>
           <div>
-            <p class="text-red-600 text-sm mt-1">
+            <span class="font-medium">
               صيغة البريد الإلكتروني غير صحيحة
-            </p>
+            </span>
+          </div>
+        </div>
+        }
+        @if (f['email'].errors['maxlength']) {
+        <div
+          class="flex items-center p-2 my-1 text-sm text-red-800 rounded-lg bg-red-100  border border-red-200 transition-opacity"
+          role="alert">
+          <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor" viewBox="0 0 20 20">
+            <path
+              d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+          </svg>
+          <span class="sr-only">Info</span>
+          <div>
+            <span class="font-medium">
+              البريد الالكترونى يجب ألا يقل عن 5 أحرف ولا تزيد عن 50
+
+            </span>
           </div>
         </div>
         }
 
-        @if (!f['email'].errors?.['required'] &&
-        (f['email'].errors?.['minlength'] || f['email'].errors?.['maxlength']) &&
-        f['email'].touched) {
-        <p class="text-red-600 text-sm mt-1">
-          البريد الالكترونى يجب ألا يقل عن 5 أحرف ولا تزيد عن 50
-        </p>
+
         }
+
       </div>
+
+
 
       <div>
         <div class="flex justify-between items-center mb-1.5">
@@ -76,24 +90,82 @@
           </a>
         </div>
 
-        <input type="password" formControlName="password" placeholder="********" class="w-full py-2.5 px-4 bg-white border rounded-lg
-             focus:ring-2 focus:ring-emerald-500 outline-none"
-          [class.border-red-500]="f['password'].invalid && f['password'].touched"
-          (blur)="f['password'].markAsTouched()">
+        <input type="password" formControlName="password" class="w-full px-4 py-2.5 border rounded-lg">
+        @if (f['password'].touched && f['password'].errors) {
 
-        @if (f['password'].errors?.['required'] && f['password'].touched) {
-        <p class="text-red-600 text-sm mt-1">
-          كلمة المرور مطلوبة
-        </p>
+        @if (f['password'].errors!['required'] || f['password'].touched) {
+        <div
+          class="flex items-center p-2 my-1 text-sm text-red-800 rounded-lg bg-red-100  border border-red-200 transition-opacity"
+          role="alert">
+          <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor" viewBox="0 0 20 20">
+            <path
+              d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+          </svg>
+          <span class="sr-only">Info</span>
+          <div>
+            <span class="font-medium">
+              كلمة المرور مطلوبة
+            </span>
+          </div>
+        </div>
+        }
+        @if (f['password'].errors['minlength']) {
+        <div
+          class="flex items-center p-2 my-1 text-sm text-red-800 rounded-lg bg-red-100  border border-red-200 transition-opacity"
+          role="alert">
+          <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor" viewBox="0 0 20 20">
+            <path
+              d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+          </svg>
+          <span class="sr-only">Info</span>
+          <div>
+            <span class="font-medium">
+              كلمة المرور يجب أن تكون 8 أحرف على الأقل
+            </span>
+          </div>
+        </div>
+        }
+        @if (f['password'].errors['maxlength']) {
+        <div
+          class="flex items-center p-2 my-1 text-sm text-red-800 rounded-lg bg-red-100  border border-red-200 transition-opacity"
+          role="alert">
+          <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor" viewBox="0 0 20 20">
+            <path
+              d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+          </svg>
+          <span class="sr-only">Info</span>
+          <div>
+            <span class="font-medium">
+              كلمة المرور يجب أن لا يزيد عن 64 أحرف
+            </span>
+          </div>
+        </div>
+        }
+        @if (f['password'].errors['pattern']) {
+        <div
+          class="flex items-center p-2 my-1 text-sm text-red-800 rounded-lg bg-red-100  border border-red-200 transition-opacity"
+          role="alert">
+          <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor" viewBox="0 0 20 20">
+            <path
+              d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+          </svg>
+          <span class="sr-only">Info</span>
+          <div>
+            <span class="font-medium">
+              كلمة المرور يجب أن تحتوي على حرف كبير وحرف صغير ورقم
+            </span>
+          </div>
+        </div>
         }
 
-        @if (!f['password'].errors?.['required'] &&
-        (f['password'].errors?.['minlength'] || f['password'].errors?.['maxlength']) &&
-        f['password'].touched) {
-        <p class="text-red-600 text-sm mt-1">
-          كلمة المرور يجب ألا تقل عن 8 أحرف ولا تزيد عن 64
-        </p>
+
         }
+
+
       </div>
 
       @if (serverError()) {

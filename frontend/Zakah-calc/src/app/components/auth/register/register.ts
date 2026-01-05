@@ -8,6 +8,7 @@ import { RegistrationRequest } from '../../../models/request/IAuthRequest';
 import { UserType } from '../../../models/enums/UserType';
 import { environment } from '../../../../environments/environment';
 import * as CryptoJS from 'crypto-js';
+import { validate } from '@angular/forms/signals';
 
 @Component({
   selector: 'app-register',
@@ -45,10 +46,10 @@ export class RegisterComponent implements OnInit {
   private initForm() {
     this.registerForm = this.fb.group(
       {
-        name: ['', Validators.required],
-        email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required, Validators.minLength(8)]],
-        confirmPassword: ['', Validators.required],
+        name: ['', Validators.required , Validators.maxLength(50),Validators.minLength(1)],
+        email: ['', [Validators.required, Validators.email, Validators.minLength(5), Validators.maxLength(50)]],
+        password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(64), Validators.pattern(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*\W).*$/)]],
+        confirmPassword: ['', [Validators.required, Validators.minLength(8)] ],
         persona: ['individual', Validators.required]
       },
       { validators: this.passwordMatchValidator }
