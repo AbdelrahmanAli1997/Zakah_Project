@@ -25,6 +25,11 @@ public class ZakahIndividualRecordMapper {
         record.setSilver(nullToZero(request.getSilver()));
         record.setStocks(nullToZero(request.getStocks()));
         record.setBonds(nullToZero(request.getBonds()));
+        record.setTradeOffers(nullToZero(request.getTradeOffers()));
+        record.setJewelry(nullToZero(request.getJewelry()));
+        record.setOtherAssets(nullToZero(request.getOtherAssets()));
+        record.setLoans(nullToZero(request.getLoans()));
+        record.setDebt(nullToZero(request.getDebt()));
         record.setGoldPrice(nullToZero(request.getGoldPrice()));
         record.setCalculationDate(request.getCalculationDate());
         record.setUser(user);
@@ -46,8 +51,15 @@ public class ZakahIndividualRecordMapper {
                 .silver(entity.getSilver())
                 .stocks(entity.getStocks())
                 .bonds(entity.getBonds())
+                .tradeOffers(entity.getTradeOffers())
+                .jewelry(entity.getJewelry())
+                .otherAssets(entity.getOtherAssets())
+                .loans(entity.getLoans())
+                .debt(entity.getDebt())
                 .goldPrice(entity.getGoldPrice())
                 .totalAssets(totalAssets)
+                .totalLiabilities(entity.getTotalLiabilities())
+                .zakahPool(entity.getZakahPool())
                 .zakahAmount(entity.getZakahAmount())
                 .calculationDate(entity.getCalculationDate())
                 .build();
@@ -73,7 +85,16 @@ public class ZakahIndividualRecordMapper {
                 .add(nullToZero(entity.getGold()))
                 .add(nullToZero(entity.getSilver()))
                 .add(nullToZero(entity.getStocks()))
-                .add(nullToZero(entity.getBonds()));
+                .add(nullToZero(entity.getBonds()))
+                .add(nullToZero(entity.getTradeOffers()))
+                .add(nullToZero(entity.getJewelry()))
+                .add(nullToZero(entity.getOtherAssets()));
+
+    }
+
+    private BigDecimal calculateTotalLiabilities(ZakahIndividualRecord entity) {
+        return nullToZero(entity.getLoans())
+                .add(nullToZero(entity.getDebt()));
     }
 
     private BigDecimal nullToZero(BigDecimal value) {

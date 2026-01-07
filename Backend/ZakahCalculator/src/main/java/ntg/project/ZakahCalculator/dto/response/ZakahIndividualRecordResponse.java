@@ -24,12 +24,19 @@ public class ZakahIndividualRecordResponse {
     private BigDecimal silver;
     private BigDecimal stocks;
     private BigDecimal bonds;
+    private BigDecimal tradeOffers;
+    private BigDecimal jewelry;
+    private BigDecimal otherAssets;
+    private BigDecimal loans;
+    private BigDecimal debt;
 
     // Zakah Info
     private BigDecimal goldPrice;
 
     // Current Record - Main Display
     private BigDecimal totalAssets;
+    private BigDecimal totalLiabilities;
+    private BigDecimal zakahPool;
     private BigDecimal zakahAmount;
     private LocalDate calculationDate;
 

@@ -2,6 +2,7 @@ package ntg.project.ZakahCalculator.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ntg.project.ZakahCalculator.dto.request.ZakahCompanyRecordRequest;
 import ntg.project.ZakahCalculator.dto.request.ZakahIndividualRecordRequest;
 import ntg.project.ZakahCalculator.dto.response.ZakahIndividualRecordResponse;
 import ntg.project.ZakahCalculator.dto.response.ZakahIndividualRecordSummaryResponse;
@@ -52,21 +53,22 @@ public class ZakahIndividualRecordServiceImpl implements ZakahIndividualRecordSe
         BigDecimal goldPrice = request.getGoldPrice();
         validateCalculationDate(calculationDate);
 
-        BigDecimal totalAssets = calculateTotalAssets(
-                request.getCash(), request.getGold(), request.getSilver(),
-                request.getStocks(), request.getBonds()
-        );
+        BigDecimal totalAssets = calculateTotalAssets(request);
+
+        BigDecimal totalLiabilities = calculateTotalLiabilities(request);
+
+        BigDecimal zakahPool = totalAssets.subtract(totalLiabilities);
 
         BigDecimal nisabValue = NISAB_GOLD_GRAMS.multiply(goldPrice);
 
         ZakahStatus status;
         BigDecimal zakahAmount;
 
-        if (totalAssets.compareTo(nisabValue) < 0) {
+        if (zakahPool.compareTo(nisabValue) < 0) {
             status = ZakahStatus.BELOW_NISAB;
             zakahAmount = BigDecimal.ZERO;
         } else {
-            zakahAmount = totalAssets.multiply(ZAKAH_RATE);
+            zakahAmount = zakahPool.multiply(ZAKAH_RATE);
             List<ZakahStatus> statuses = Arrays.asList(
                     ZakahStatus.ELIGABLE_FOR_ZAKAH,
                     ZakahStatus.LAST_RECORD_DUE_AND_NEW_HAWL_BEGIN
@@ -99,6 +101,8 @@ public class ZakahIndividualRecordServiceImpl implements ZakahIndividualRecordSe
         record.setZakahAmount(zakahAmount);
         record.setStatus(status);
         record.setTotalAssets(totalAssets);
+        record.setTotalLiabilities(totalLiabilities);
+        record.setZakahPool(zakahPool);
 
         ZakahIndividualRecord saved = repository.save(record);
         log.info("Zakah calculation completed successfully for user: {}", userId);
@@ -164,15 +168,20 @@ public class ZakahIndividualRecordServiceImpl implements ZakahIndividualRecordSe
     }
 
     // =================== HELPERS ===================
-    private BigDecimal calculateTotalAssets(BigDecimal cash, BigDecimal gold,
-                                            BigDecimal silver, BigDecimal stocks, BigDecimal bonds) {
-        BigDecimal total = BigDecimal.ZERO;
-        if (cash != null) total = total.add(cash);
-        if (gold != null) total = total.add(gold);
-        if (silver != null) total = total.add(silver);
-        if (stocks != null) total = total.add(stocks);
-        if (bonds != null) total = total.add(bonds);
-        return total;
+    private BigDecimal calculateTotalAssets(ZakahIndividualRecordRequest r) {
+        return BigDecimal.ZERO.add(r.getCash())
+                .add(r.getGold())
+                .add(r.getSilver())
+                .add(r.getStocks())
+                .add(r.getBonds())
+                .add(r.getTradeOffers())
+                .add(r.getJewelry())
+                .add(r.getOtherAssets());
+    }
+
+    private BigDecimal calculateTotalLiabilities(ZakahIndividualRecordRequest r) {
+        return BigDecimal.ZERO.add(r.getLoans())
+                .add(r.getDebt());
     }
 
 

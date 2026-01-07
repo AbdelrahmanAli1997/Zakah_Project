@@ -23,34 +23,34 @@ public class ZakahCompanyRecord extends ZakahRecord {
 
     // Assets
     @Column(name = "cash_equivalents", precision = 15, scale = 2)
-    private BigDecimal cashEquivalents;
+    private BigDecimal cashEquivalents; // "النقد وما في حكمه (شهادات إيداع، أذون خزانة)"
 
     @Column(name = "accounts_receivable", precision = 15, scale = 2)
-    private BigDecimal accountsReceivable;
+    private BigDecimal accountsReceivable; // "الذمم المدينة (مستحقات على العملاء)"
 
     @Column(precision = 15, scale = 2)
-    private BigDecimal inventory;
+    private BigDecimal inventory; // "المخزون (بضاعة تامة، تحت التصنيع، مواد خام)"
 
     @Column(precision = 15, scale = 2)
-    private BigDecimal investment;
+    private BigDecimal investment; // "الاستثمارات طويلة الأجل (أسهم، سندات، شركات تابعة)"
 
     // Liabilities
     @Column(name = "accounts_payable", precision = 15, scale = 2)
-    private BigDecimal accountsPayable;
+    private BigDecimal accountsPayable; // "الذمم الدائنة (مستحقات للموردين)"
 
     @Column(name = "short_term_liability", precision = 15, scale = 2)
-    private BigDecimal shortTermLiability;
+    private BigDecimal shortTermLiability; // "الالتزامات قصيرة الأجل (قروض سنة أو أقل)"
 
     @Column(name = "accrued_expenses", precision = 15, scale = 2)
-    private BigDecimal accruedExpenses;
+    private BigDecimal accruedExpenses; // "المصروفات المستحقة (رواتب، ضرائب، فوائد متراكمة)"
 
     // yearly_portion_of_long_term_liabilities
     @Column(name = "yearly_long_term_liabilities", precision = 15, scale = 2)
-    private BigDecimal yearlyLongTermLiabilities;
+    private BigDecimal yearlyLongTermLiabilities; // "حصَّة السنة من الالتزامات طويلة الأجل"
 
     // Balance sheet Data
     @Column(name = "balance_sheet_date")
-    private LocalDate balanceSheetDate;
+    private LocalDate balanceSheetDate; // "تاريخ إعداد الميزانية (آخر يوم في الفترة المحاسبية)"
 
     @Column(name= "total_assets")
     private BigDecimal totalAssets;
