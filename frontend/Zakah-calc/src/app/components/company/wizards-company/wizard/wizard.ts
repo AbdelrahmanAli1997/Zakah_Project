@@ -249,4 +249,33 @@ export class ZakahCompanyRecordComponent implements OnInit {
 
     return dateStr;
   }
+
+    onNumberInput(event: Event) {
+  const input = event.target as HTMLInputElement;
+
+  let value = input.value;
+
+  // إزالة أي شيء غير رقم أو نقطة
+  value = value.replace(/[^0-9.]/g, '');
+
+  // منع أكثر من نقطة
+  const parts = value.split('.');
+  if (parts.length > 2) {
+    value = parts[0] + '.' + parts.slice(1).join('');
+  }
+
+  input.value = value;
+
+  this.zakahService.updateFormData({
+    [input.name]: value === '' ? 0 : Number(value)
+  });
+}
+
+blockInvalidNumberKeys(event: KeyboardEvent) {
+  const invalidKeys = ['e', 'E', '+', '-'];
+  if (invalidKeys.includes(event.key)) {
+    event.preventDefault();
+  }
+}
+
 }
