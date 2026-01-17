@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers(PUBLIC_URLS)
                                 .permitAll()
-                                .requestMatchers("/zakah/company/**").hasAnyRole("COMPANY", "ROLE_COMPANY_SOFTWARE")
+                                .requestMatchers("/zakah/company/**").hasAnyRole("COMPANY", "COMPANY_SOFTWARE")
                                 .requestMatchers("/zakah/individual/**").hasRole("INDIVIDUAL")
                                 .anyRequest()
                                 .authenticated())

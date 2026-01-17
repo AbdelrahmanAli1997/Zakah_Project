@@ -1,7 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  inject,
+  inject, OnInit,
   signal
 } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
@@ -10,6 +10,7 @@ import { ZakahCompanyExcelService } from '../../../../services/zakah-company-ser
 import { TooltipComponent } from '../../../../shared/tooltip/tooltip';
 import { ZakahCompanyRecordRequest } from '../../../../models/request/ZakahCompanyRequest';
 import { Router } from '@angular/router';
+import {SoftwareCompanyModel} from '../../../../models/software-company-model';
 
 @Component({
   selector: 'app-wizard',
@@ -19,7 +20,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./wizard.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ZakahCompanyRecordComponent {
+export class ZakahCompanyRecordComponent implements OnInit {
   private excelService = inject(ZakahCompanyExcelService);
   zakahService = inject(ZakahCompanyRecordService);
   private router = inject(Router);
@@ -80,20 +81,21 @@ export class ZakahCompanyRecordComponent {
     value: number | string
   ): string | null {
 
-    // required
+    if (key === 'balanceSheetDate') {
+      return value ? null : 'يرجى اختيار تاريخ';
+    }
+
     if (value === null || value === undefined || value === '') {
       return 'هذا الحقل مطلوب';
     }
 
-    // prevent characters (non-numeric strings)
     if (typeof value === 'string' && isNaN(Number(value))) {
       return 'من فضلك أدخل رقمًا صحيحًا';
     }
 
     const numericValue = Number(value);
 
-    // negative number
-    if (!isNaN(numericValue) && numericValue < 0) {
+    if (numericValue < 0) {
       return 'القيمة لا يمكن أن تكون سالبة';
     }
 
