@@ -32,6 +32,7 @@ export class ZakahCompanyRecordService {
   }
   resetForm(): void {
     this.formData.set(this.getInitialFormData());
+    this.formSoftwareData.set(this.getInitialSoftwareFormData());
     this.currentWizardStep.set(0);
   }
 
@@ -43,9 +44,14 @@ export class ZakahCompanyRecordService {
 
 
   calculate(): Observable<ZakahCompanyRecordResponse> {
+    console.log('entering service')
     const data = this.formData();
     let request: ZakahCompanyRecordRequest = {} as ZakahCompanyRecordRequest;
+    console.log('entering conditions')
+
     if (this.companyType === 'ROLE_COMPANY') {
+      console.log('entering ROLE_COMPANY')
+
       request = {
         balanceSheetDate: data.balanceSheetDate,
         cashEquivalents: data.cashEquivalents,
@@ -63,23 +69,37 @@ export class ZakahCompanyRecordService {
         provisionsUnderLiabilities: data.provisionsUnderLiabilities
       };
     } else if (this.companyType === 'ROLE_COMPANY_SOFTWARE') {
+      const softwareData = this.formSoftwareData(); // 🔴 **تغيير مهم هنا**
+      console.log('entering ROLE_COMPANY_SOFTWARE')
+
+
       request = {
-        balanceSheetDate: this.formSoftwareData().balanceSheetDate,
-        cashEquivalents: this.formSoftwareData().handOnCash + this.formSoftwareData().accountsCurrentDepositsBank + this.formSoftwareData().depositsStatutory + this.formSoftwareData().partiesThirdWithDeposits,
-        investment: this.formSoftwareData().investmentsEquity + this.formSoftwareData().affiliatesSubsidiaries + this.formSoftwareData().investmentsSukukIslamic + this.formSoftwareData().securitiesTrading,
-        inventory: this.formSoftwareData().expensesContractPrepaid,
-        accountsReceivable: this.formSoftwareData().receivablesTrade + this.formSoftwareData().receivableNotes + this.formSoftwareData().incomeAccrued,
-        accountsPayable: this.formSoftwareData().payableAccounts + this.formSoftwareData().payableNotes,
-        accruedExpenses: this.formSoftwareData().expensesAccrued,
-        shortTermLiability: this.formSoftwareData().loansTermShort,
-        yearlyLongTermLiabilities: this.formSoftwareData().debtTermLongPortionCurrent,
+        balanceSheetDate: softwareData.balanceSheetDate,
+        cashEquivalents: softwareData.handOnCash + softwareData.accountsCurrentDepositsBank +
+          softwareData.depositsStatutory + softwareData.partiesThirdWithDeposits,
+        investment: softwareData.investmentsEquity + softwareData.affiliatesSubsidiaries +
+          softwareData.investmentsSukukIslamic + softwareData.securitiesTrading,
+        inventory: softwareData.expensesContractPrepaid,
+        accountsReceivable: softwareData.receivablesTrade + softwareData.receivableNotes +
+          softwareData.incomeAccrued,
+        accountsPayable: softwareData.payableAccounts + softwareData.payableNotes,
+        accruedExpenses: softwareData.expensesAccrued,
+        shortTermLiability: softwareData.loansTermShort,
+        yearlyLongTermLiabilities: softwareData.debtTermLongPortionCurrent,
         netProfit: 0,
-        generatingFixedAssets: this.formSoftwareData().generatingFixedAssets,
-        contraAssets: this.formSoftwareData().assetsFixedProvisionDepreciation + this.formSoftwareData().investmentsProvisionImpairment + this.formSoftwareData().debtsDoubtfulAllowance + this.formSoftwareData().discountsCashProvision,
-        provisionsUnderLiabilities: this.formSoftwareData().provisionOverhaulMaintenance + this.formSoftwareData().assetsProvisionInsurance,
-        goldPrice: this.formSoftwareData().goldPrice,
+        generatingFixedAssets: softwareData.generatingFixedAssets,
+        contraAssets: softwareData.assetsFixedProvisionDepreciation +
+          softwareData.investmentsProvisionImpairment +
+          softwareData.debtsDoubtfulAllowance +
+          softwareData.discountsCashProvision,
+        provisionsUnderLiabilities: softwareData.provisionOverhaulMaintenance +
+          softwareData.assetsProvisionInsurance,
+        goldPrice: softwareData.goldPrice,
       };
     }
+    console.log('after conditions');
+
+    console.log(request);
 
     return this.http.post<ZakahCompanyRecordResponse>(`${this.BASE_URL}/calculate`, request)
       .pipe(
@@ -143,6 +163,10 @@ export class ZakahCompanyRecordService {
 
   updateFormData(patch: Partial<ZakahCompanyRecordRequest>): void {
     this.formData.update(current => ({ ...current, ...patch }));
+  }
+
+  updateSoftwareFormData(patch: Partial<SoftwareCompanyModel>): void {
+    this.formSoftwareData.update(current => ({ ...current, ...patch }));
   }
 
   nextStep(): void {

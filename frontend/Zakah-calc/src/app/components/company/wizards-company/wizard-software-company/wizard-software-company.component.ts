@@ -19,10 +19,11 @@ export class WizardSoftwareCompanyComponent implements OnInit {
   zakahService = inject(ZakahCompanyRecordService);
   private router = inject(Router);
 
-  formData = this.zakahService.formSoftwareData;
+  softwareFormData = this.zakahService.formSoftwareData;
   currentStep = this.zakahService.currentWizardStep;
   steps = this.zakahService.wizardSteps;
   isCalculating = this.zakahService.isCalculating;
+  companyType = this.zakahService.companyType;
 
   fileName = signal<string | null>(null);
   isLoading = signal(false);
@@ -34,10 +35,10 @@ export class WizardSoftwareCompanyComponent implements OnInit {
 
   ngOnInit() {
     // Initialize balanceSheetDate if not set
-    const currentData = this.formData();
+    const currentData = this.softwareFormData();
     if (!currentData.balanceSheetDate) {
       const today = new Date().toISOString().split('T')[0];
-      this.zakahService.updateFormData({ balanceSheetDate: today });
+      this.zakahService.updateSoftwareFormData({ balanceSheetDate: today });
     }
   }
 
@@ -57,7 +58,7 @@ export class WizardSoftwareCompanyComponent implements OnInit {
     // 2. معالجة صيغة YYYY-MM-DD القياسية
     if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
       return trimmed;
-    }   
+    }
 
     // 3. محاولة أخيرة باستخدام كائن Date
     const date = new Date(trimmed);
@@ -65,11 +66,15 @@ export class WizardSoftwareCompanyComponent implements OnInit {
   }
 
   getDisplayDate(): string {
-    return this.formData().balanceSheetDate || '';
+    return this.softwareFormData().balanceSheetDate || '';
   }
 
   get isSoftwareCompany(): boolean {
     return this.zakahService.companyType === 'ROLE_COMPANY_SOFTWARE';
+  }
+  get formData() {
+    // هذا سيرجع البيانات الصحيحة بناءً على نوع الشركة
+    return this.softwareFormData;
   }
   // ================= Inputs =================
 
@@ -78,32 +83,35 @@ export class WizardSoftwareCompanyComponent implements OnInit {
     value: number | string
   ): string | null {
 
-    // required
+    // 👈 تجاهل التاريخ
+    if (key === 'balanceSheetDate') {
+      return value ? null : 'يرجى اختيار تاريخ';
+    }
+
     if (value === null || value === undefined || value === '') {
       return 'هذا الحقل مطلوب';
     }
 
-    // prevent characters (non-numeric strings)
     if (typeof value === 'string' && isNaN(Number(value))) {
       return 'من فضلك أدخل رقمًا صحيحًا';
     }
 
     const numericValue = Number(value);
 
-    // negative number
-    if (!isNaN(numericValue) && numericValue < 0) {
+    if (numericValue < 0) {
       return 'القيمة لا يمكن أن تكون سالبة';
     }
 
     return null;
   }
 
+
   onInputChange(event: Event): void {
     const target = event.target as HTMLInputElement;
     const key = target.name as keyof SoftwareCompanyModel;
     const value = target.valueAsNumber || 0;
 
-    this.zakahService.updateFormData({ [key]: value });
+    this.zakahService.updateSoftwareFormData({ [key]: value } as any);
 
     const error = this.validateField(key, value);
     this.fieldErrors.update(errors => ({
@@ -114,7 +122,9 @@ export class WizardSoftwareCompanyComponent implements OnInit {
 
   onDateChange(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
-    this.zakahService.updateFormData({ balanceSheetDate: value });
+
+    // ✅ **استخدم الدالة الجديدة**
+    this.zakahService.updateSoftwareFormData({ balanceSheetDate: value } as any);
 
     this.fieldErrors.update(errors => ({
       ...errors,
@@ -123,7 +133,7 @@ export class WizardSoftwareCompanyComponent implements OnInit {
   }
 
   private validateAll(): boolean {
-    const data = this.formData();
+    const data = this.softwareFormData();
     let valid = true;
     const errors: Partial<Record<keyof SoftwareCompanyModel, string>> = {};
 
@@ -139,6 +149,8 @@ export class WizardSoftwareCompanyComponent implements OnInit {
     this.fieldErrors.set(errors);
     return valid;
   }
+
+
 
   // ================= Excel =================
 
@@ -169,7 +181,8 @@ export class WizardSoftwareCompanyComponent implements OnInit {
 
     this.zakahService.readCompanyExcelObservable(file).subscribe({
       next: (excelData) => {
-        this.zakahService.updateFormData({
+        // ✅ **استخدم الدالة الجديدة**
+        this.zakahService.updateSoftwareFormData({
           cashEquivalents: excelData.cashEquivalents || 0,
           investment: excelData.investment || 0,
           inventory: excelData.inventory || 0,
@@ -186,7 +199,7 @@ export class WizardSoftwareCompanyComponent implements OnInit {
           generatingFixedAssets: excelData.generatingFixedAssets || 0,
           contraAssets: excelData.contraAssets || 0,
           provisionsUnderLiabilities: excelData.provisionsUnderLiabilities || 0
-        });
+        } as any);
 
         const detailsStep = this.steps().indexOf('التفاصيل');
         if (detailsStep !== -1) this.zakahService.goToStep(detailsStep);
@@ -210,11 +223,16 @@ export class WizardSoftwareCompanyComponent implements OnInit {
   }
 
   calculate(): void {
-    if (!this.validateAll()) return;
+    console.log("calculate() function STARTED")
+    if (!this.validateAll()) {
+      console.log("❌ Validation failed!");
+      return;
+    }
 
     this.errorMessage.set(null);
     this.isCalculating.set(true);
 
+    console.log('before service')
     this.zakahService.calculate().subscribe({
       next: (result) => {
         this.zakahService.latestResult.set(result);
@@ -231,6 +249,7 @@ export class WizardSoftwareCompanyComponent implements OnInit {
       }
     });
   }
+
 
   // ================= Display =================
 
