@@ -1,0 +1,183 @@
+/* ===============================
+   Global Layout Enhancements
+================================ */
+
+:host {
+  display: block;
+  direction: rtl;
+  background-color: #f8fafc; /* slate-50 */
+}
+
+/* ===============================
+   Sidebar (Topics)
+================================ */
+
+aside {
+  position: sticky;
+  top: 5rem;
+  height: fit-content;
+}
+
+aside h2 {
+  letter-spacing: 0.2px;
+}
+
+aside nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+aside button {
+  outline: none;
+}
+
+/* Smooth active highlight */
+aside button.bg-emerald-100 {
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.3);
+}
+
+/* ===============================
+   Content Area
+================================ */
+
+article {
+  background: #ffffff;
+  padding: 2.5rem;
+  border-radius: 1rem;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.04),
+    0 4px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+/* Headings */
+article h1 {
+  margin-bottom: 1rem;
+}
+
+article h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: #0f766e; /* emerald-700 */
+}
+
+/* Paragraphs */
+article p {
+  margin-bottom: 1rem;
+  line-height: 1.9;
+}
+
+/* Lists */
+article ul {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-right: 1.25rem;
+}
+
+article ul li {
+  margin-bottom: 0.5rem;
+  line-height: 1.8;
+  position: relative;
+}
+
+article ul li::marker {
+  color: #10b981; /* emerald-500 */
+}
+
+/* Strong text */
+article strong {
+  color: #0f172a; /* slate-900 */
+}
+
+/* ===============================
+   Animations
+================================ */
+
+.animate-fade-in {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===============================
+   Scroll Behavior
+================================ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ===============================
+   Responsive Adjustments
+================================ */
+
+@media (max-width: 1024px) {
+  article {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  article {
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+  }
+}
+
+@media (max-width: 640px) {
+  article {
+    padding: 1.25rem;
+  }
+
+  article h1 {
+    font-size: 1.5rem;
+  }
+
+  article h2 {
+    font-size: 1.1rem;
+  }
+}
+
+/* ===============================
+   Prose Overrides (Tailwind Prose)
+================================ */
+
+.prose {
+  max-width: 100%;
+}
+
+.prose a {
+  color: #10b981;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.prose a:hover {
+  text-decoration: underline;
+}
+
+/* ===============================
+   Accessibility
+================================ */
+
+button:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+
+/* ===============================
+   Minor UI Polish
+================================ */
+
+#guide-content-top {
+  scroll-margin-top: 2rem;
+}

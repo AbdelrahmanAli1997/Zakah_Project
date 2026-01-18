@@ -1,4 +1,4 @@
-import { DoCheck, Injectable, OnInit, signal } from '@angular/core';
+import { DoCheck, inject, Injectable, OnInit, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import {
@@ -18,6 +18,8 @@ import {
   VerifyOtpRequest
 } from '../../models/request/IAuthRequest';
 import {environment} from '../../../environments/environment';
+import { ZakahCompanyRecordService } from '../zakah-company-service/zakah-company-service';
+import { ZakahIndividualRecordService } from '../zakah-individual-service/zakah-individual-service';
 
 
 @Injectable({
@@ -26,6 +28,8 @@ import {environment} from '../../../environments/environment';
 export class AuthService implements OnInit{
 
   private readonly BASE_URL =  `${environment.apiUrl}/auth`;
+  private _companyService = inject(ZakahCompanyRecordService);
+  private _individualService = inject(ZakahIndividualRecordService);
 
   isLoggedIn = signal<boolean>(false);
 
@@ -119,6 +123,9 @@ this.isLoggedIn.set(!!AuthStorageService.getAccessToken());
 
   logout(): void {
     AuthStorageService.clear();
+    this._companyService.resetForm();
+    this._individualService.resetForm();
     this.isLoggedIn.set(false);
+    
   }
 }

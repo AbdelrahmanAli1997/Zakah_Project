@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { interval, Subject, takeWhile, takeUntil, map, tap } from 'rxjs';
 import * as CryptoJS from 'crypto-js';
 
@@ -13,7 +13,7 @@ import { LeftSectionViewComponent } from "../left-section-view/left-section-view
 @Component({
   selector: 'app-verify-password-otp',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LeftSectionViewComponent],
+  imports: [CommonModule, ReactiveFormsModule, LeftSectionViewComponent, RouterLink],
   templateUrl: './verify-password-otp.component.html',
   styleUrls: ['./verify-password-otp.component.css']
 })
