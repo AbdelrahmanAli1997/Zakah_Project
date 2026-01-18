@@ -16,7 +16,6 @@ import { LeftSectionViewComponent } from '../left-section-view/left-section-view
   imports: [CommonModule, ReactiveFormsModule, RouterLink, LeftSectionViewComponent],
   templateUrl: './register.html'
 })
-
 export class RegisterComponent implements OnInit {
 
   private readonly COMPANY_TYPE_KEY = 'company_type';
@@ -26,11 +25,14 @@ export class RegisterComponent implements OnInit {
   isLoading = signal(false);
   isFormValid = signal(false);
 
+  showPassword = signal(false);
+  showConfirmPassword = signal(false);
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.initForm();
@@ -39,45 +41,38 @@ export class RegisterComponent implements OnInit {
       this.isFormValid.set(this.registerForm.valid);
     });
   }
-  showPassword = signal(false);
-  showConfirmPassword = signal(false);
 
- togglePassword() {
-  this.showPassword.set(!this.showPassword());
-}
-
-toggleConfirmPassword() {
-  this.showConfirmPassword.set(!this.showConfirmPassword());
-}
-
+   togglePassword() {
+    this.showPassword.set(!this.showPassword());
+  }
+   toggleConfirmPassword() {
+    this.showConfirmPassword.set(!this.showConfirmPassword());
+  }
 
   private initForm() {
-    const emailPattern = /^[A-Za-z](?:[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)@[A-Za-z0-9-]+(?:\.[A-Za-z]{2,})+$/;
+  
+  this.registerForm = this.fb.group({
+  name: ['', Validators.required],
+  email: ['', [
+    Validators.required,
+    Validators.minLength(5),
+    Validators.maxLength(50),
+    Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
+  ]],
+  password: ['', [
+    Validators.required,
+    Validators.minLength(8),
+    Validators.maxLength(64),
+    Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/)
+  ]],
+  confirmPassword: ['', Validators.required],
+  persona: ['', Validators.required],
+  companyType: ['']
+}, { validators: this.passwordMatchValidator });
 
-    this.registerForm = this.fb.group(
-      {
-        name: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(50)]],
-        email: ['', [
-          Validators.required,
-          Validators.pattern(emailPattern),
-          Validators.minLength(5),
-          Validators.maxLength(50)
-        ]],
-        password: ['', [
-          Validators.required,
-          Validators.minLength(8),
-          Validators.maxLength(64),
-          Validators.pattern(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*\W).*$/)
-        ]],
-        confirmPassword: ['', [Validators.required, Validators.minLength(8)]],
-        persona: ['individual', Validators.required]
-      },
-      { validators: this.passwordMatchValidator }
-    );
 
     this.isFormValid.set(this.registerForm.valid);
   }
-
 
   get f() {
     return this.registerForm.controls;
@@ -85,7 +80,6 @@ toggleConfirmPassword() {
 
   selectPersona(type: 'individual' | 'company') {
     this.registerForm.patchValue({ persona: type });
-
     if (type !== 'company') {
       localStorage.removeItem(this.COMPANY_TYPE_KEY);
     }
@@ -106,7 +100,7 @@ toggleConfirmPassword() {
   }
 
   onSubmit() {
-    if (!this.isFormValid() || this.isLoading()) {
+    if (this.registerForm.invalid || this.isLoading()) {
       this.registerForm.markAllAsTouched();
       return;
     }
@@ -116,16 +110,12 @@ toggleConfirmPassword() {
     const formValue = this.registerForm.value;
     const companyType = this.getCompanyType();
 
-    let typeUser: UserType;
-
-    if (formValue.persona === 'individual') {
-      typeUser = UserType.ROLE_INDIVIDUAL;
-
-    } else {
-      typeUser = companyType === 'company-software'
-        ? UserType.ROLE_COMPANY_SOFTWARE
-        : UserType.ROLE_COMPANY;
-    }
+    const typeUser =
+      formValue.persona === 'individual'
+        ? UserType.ROLE_INDIVIDUAL
+        : companyType === 'company-software'
+          ? UserType.ROLE_COMPANY_SOFTWARE
+          : UserType.ROLE_COMPANY;
 
     const request: RegistrationRequest = {
       fullName: formValue.name,
@@ -139,7 +129,9 @@ toggleConfirmPassword() {
       next: () => {
         const encryptedEmail = CryptoJS.AES.encrypt(request.email, this.secretKey).toString();
         localStorage.removeItem(this.COMPANY_TYPE_KEY);
-        this.router.navigate(['/verify-otp'], { queryParams: { email: encryptedEmail } });
+        this.router.navigate(['/verify-otp'], {
+          queryParams: { email: encryptedEmail }
+        });
       },
       error: () => {
         alert('فشل إنشاء الحساب');
@@ -148,9 +140,4 @@ toggleConfirmPassword() {
       complete: () => this.isLoading.set(false)
     });
   }
-
-  passwordMismatch = computed(() =>
-    this.registerForm.get('password')?.value !==
-    this.registerForm.get('confirmPassword')?.value
-  );
 }

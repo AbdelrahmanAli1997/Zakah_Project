@@ -1,6 +1,4 @@
-<ngx-spinner
-  bdColor="rgba(0, 0, 0, 0.9)"
-  [fullScreen]="true" class="text-center">
+<ngx-spinner bdColor="rgba(0, 0, 0, 0.9)" [fullScreen]="true" class="text-center">
   <img src="/imgs/LogoZakah.png" class="w-90 h-90" alt="Loading..." />
   <p style="color: white">حسابة الزكاة...</p>
   <!-- <p style="color: white">Loading...</p> -->
@@ -116,7 +114,7 @@
         <div class="bg-white rounded-xl shadow-lg">
           <h3 class="p-4 sm:p-6 text-lg font-semibold text-slate-800 border-b">تفاصيل الحساب</h3>
           <dl class="text-sm">
-            
+
             <dt class="p-4 sm:p-6 font-semibold text-emerald-800 bg-emerald-50 border-b border-t border-emerald-100">
               الأصول</dt>
             @if(result.cashEquivalents > 0) { <dd class="flex justify-between items-center p-4 sm:px-6"><span
@@ -140,7 +138,7 @@
               </span><span class="font-medium text-slate-800">{{
                 result.accountsReceivable | currency:'EGP' }}</span></dd> }
 
-            
+
             <dt class="p-4 sm:p-6 font-semibold text-red-800 bg-red-50 border-b border-t border-red-100">الخصوم</dt>
             @if(result.accountsPayable > 0) { <dd class="flex justify-between items-center p-4 sm:px-6"><span
                 class="text-slate-600">الحسابات الدائنة (ِAccounts Payable)</span><span
@@ -158,18 +156,21 @@
                 result.shortTermLiability | currency:'EGP' }})</span></dd> }
             @if(result.yearlyLongTermLiabilities > 0) { <dd
               class="flex justify-between items-center p-4 sm:px-6 border-t border-slate-100"><span
-                class="text-slate-600"> الالتزامات طويلة الأجل الجزء السنوي ( Yearly Long-term Liabilities)</span><span class="font-medium text-slate-800">({{
+                class="text-slate-600"> الالتزامات طويلة الأجل الجزء السنوي ( Yearly Long-term Liabilities)</span><span
+                class="font-medium text-slate-800">({{
                 result.yearlyLongTermLiabilities | currency:'EGP' }})</span></dd> }
 
 
 
-<dt class="p-4 sm:p-6 font-semibold text-yellow-700 bg-yellow-50 border-b border-t border-yellow-400">
-              صافي الربح</dt>
+            <dt class="p-4 sm:p-6 font-semibold text-yellow-700 bg-yellow-50 border-b border-t border-yellow-400">
+              صافي الربح
+            </dt>
             @if(result.netProfit > 0) { <dd class="flex justify-between items-center p-4 sm:px-6"><span
-                class="text-slate-600"> النقد و مشتملاته (Cash Equivalents )
+                class="text-slate-600">       (netProfit)  صافي الربح
+
               </span><span class="font-medium text-slate-800">{{ result.netProfit | currency:'EGP' }}</span></dd>
             }
-            
+
           </dl>
         </div>
       </div>

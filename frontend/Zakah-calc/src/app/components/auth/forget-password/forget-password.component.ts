@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth-service/auth.service';
 import { ForgetPasswordRequest } from '../../../models/request/IAuthRequest';
 import * as CryptoJS from 'crypto-js';
@@ -11,7 +11,7 @@ import { LeftSectionViewComponent } from "../left-section-view/left-section-view
 @Component({
   selector: 'app-forget-password',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, LeftSectionViewComponent],
+  imports: [ReactiveFormsModule, CommonModule, LeftSectionViewComponent , RouterLink],
   templateUrl: './forget-password.component.html',
   styleUrls: ['./forget-password.component.css']
 })

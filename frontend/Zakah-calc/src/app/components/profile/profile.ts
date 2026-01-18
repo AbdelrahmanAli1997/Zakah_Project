@@ -28,6 +28,9 @@ export class Profile implements OnInit {
   save = output<void>();
   cancel = output<void>();
   deleteAccount = output<void>();
+  showPassword = signal(false);
+  showOldPassword = signal(false);
+  showConfirmPassword = signal(false);
 
   /* ================= FORMS ================= */
 
@@ -41,6 +44,9 @@ export class Profile implements OnInit {
     newPassword: ['', [Validators.required, Validators.minLength(3)]],
     confirmNewPassword: ['', Validators.required]
   });
+  get f() {
+    return this.passwordForm.controls;
+  }
 
   /* ================= SIGNAL STATE ================= */
 
@@ -62,6 +68,10 @@ export class Profile implements OnInit {
         email: user.email
       });
     }
+  }
+
+   togglePassword() {
+    this.showPassword.set(!this.showPassword());
   }
 
   /* ================= UPDATE INFO ================= */

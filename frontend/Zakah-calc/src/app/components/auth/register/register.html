@@ -9,27 +9,11 @@
       <form class="space-y-4" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
 
         <!-- Name -->
-        @if (registerForm.invalid && registerForm.touched) {
-        <div
-          class="flex items-center p-2 my-1 text-sm text-red-800 rounded-lg bg-red-100  border border-red-200 transition-opacity"
-          role="alert">
-          <svg class="shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor" viewBox="0 0 20 20">
-            <path
-              d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-          </svg>
-          <span class="sr-only">Info</span>
-          <div>
-            <span class="font-medium">
-              يرجى تصحيح الأخطاء قبل المتابعة
-            </span>
-          </div>
-        </div>
-        }
+        
         <div>
           <label class="block mb-1.5 font-medium">الاسم</label>
           <input type="text" formControlName="name" class="w-full px-4 py-2.5 border rounded-lg"
-            [class.border-red-500]="f['name'].invalid && f['name'].touched" placeholder="أدخل اسمك">
+            [class.border-red-500]="f['name'].invalid && f['name'].touched" >
           @if (f['name'].touched && f['name'].errors) {
           <div
             class="flex items-center p-2 my-1 text-sm text-red-800 rounded-lg bg-red-100  border border-red-200 transition-opacity"
@@ -70,7 +54,7 @@
             </div>
           </div>
           }
-          @if (f['email'].errors['email'] && f['email'].touched) {
+          @if (f['email'].errors['email']) {
           <div
             class="flex items-center p-2 my-1 text-sm text-red-800 rounded-lg bg-red-100  border border-red-200 transition-opacity"
             role="alert">
@@ -121,7 +105,7 @@
             </div>
           </div>
           }
-          @if (f['email'].errors['emailPattern'] ) {
+          @if (f['email'].errors['pattern'] ) {
           <div
             class="flex items-center p-2 my-1 text-sm text-red-800 rounded-lg bg-red-100  border border-red-200 transition-opacity"
             role="alert">
